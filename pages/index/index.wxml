@@ -1,0 +1,5 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <button bindtap="navigateToCreate">创建游戏</button>
+  <button bindtap="navigateToJoin">加入游戏</button>
+</view>

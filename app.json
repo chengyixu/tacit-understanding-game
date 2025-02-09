@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/create/create",
+    "pages/join/join",
+    "pages/waiting/waiting",
+    "pages/game/game"
+  ],
+  "window": {
+    "navigationBarTitleText": "默契"
+  },
+  "style": "v2",  
+  "useExtendedLib": {
+    "weui": true  
+  }
+}

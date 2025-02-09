@@ -1,0 +1,10 @@
+<!-- pages/waiting/waiting.wxml -->
+<view class="container">
+  <text>房间号：{{roomId}}</text> <!-- 改为使用本地状态 -->
+  <view>当前玩家：
+    <block wx:for="{{players}}" wx:key="index">
+      {{item}} 
+    </block>
+  </view>
+  <button wx:if="{{showStart}}" bindtap="startGame">开始游戏</button>
+</view>

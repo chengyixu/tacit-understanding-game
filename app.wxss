@@ -1,0 +1,85 @@
+/* 通用样式 */
+.container {
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+button {
+  margin-top: 20rpx;
+}
+
+.result {
+  background-color: #f0f0f0;
+  padding: 20rpx;
+  border-radius: 10rpx;
+}
+
+/* 游戏页面新增样式 */
+.header {
+  margin-bottom: 30rpx;
+  padding: 20rpx;
+  background: #f8f8f8;
+  border-radius: 10rpx;
+}
+
+.score {
+  font-size: 36rpx;
+  color: #1890ff;
+  margin: 20rpx 0;
+}
+
+.choices {
+  display: flex;
+  gap: 40rpx;
+  justify-content: center;
+}
+
+.choice-btn {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  font-size: 32rpx;
+}
+
+.btn-hover {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.result {
+  background: #fff;
+  padding: 30rpx;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
+}
+
+.result-title {
+  font-weight: bold;
+  margin-bottom: 20rpx;
+}
+
+.choice-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 15rpx 0;
+  padding: 10rpx;
+  background: #fafafa;
+}
+
+.nickname {
+  color: #666;
+}
+
+.choice {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.new-score {
+  margin-top: 30rpx;
+  text-align: center;
+  font-size: 34rpx;
+  color: #52c41a;
+}

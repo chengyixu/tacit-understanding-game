@@ -1,0 +1,33 @@
+<!-- pages/game/game.wxml -->
+<view class="container">
+  <view class="header">
+    <text>房间号：{{roomId}}</text>
+    <text>当前玩家：{{players.join('、')}}</text>
+  </view>
+  
+  <text class="score">当前默契值：{{score}}</text>
+  
+  <view wx:if="{{!choices}}" class="choices">
+    <button 
+      data-choice="A" 
+      bindtap="makeChoice" 
+      class="choice-btn" 
+      hover-class="btn-hover"
+    >选择A</button>
+    <button 
+      data-choice="B" 
+      bindtap="makeChoice" 
+      class="choice-btn" 
+      hover-class="btn-hover"
+    >选择B</button>
+  </view>
+
+  <view wx:else class="result">
+    <view class="result-title">本轮结果：</view>
+    <view wx:for="{{choices}}" wx:key="key" class="choice-item">
+      <text class="nickname">{{key}}：</text>
+      <text class="choice">{{item === 'A' ? '选项A' : '选项B'}}</text>
+    </view>
+    <view class="new-score">新默契值：{{score}}</view>
+  </view>
+</view>

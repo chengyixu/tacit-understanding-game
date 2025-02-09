@@ -1,0 +1,8 @@
+<!-- pages/join/join.wxml -->
+<view class="container">
+  <form bindsubmit="formSubmit">
+    <input name="roomId" placeholder="输入房间号" />
+    <input name="nickname" placeholder="输入昵称" />
+    <button form-type="submit">加入房间</button>
+  </form>
+</view>
