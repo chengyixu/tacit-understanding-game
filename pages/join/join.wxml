@@ -1,8 +1,25 @@
-<!-- pages/join/join.wxml -->
 <view class="container">
-  <form bindsubmit="formSubmit">
-    <input name="roomId" placeholder="输入房间号" />
-    <input name="nickname" placeholder="输入昵称" />
-    <button form-type="submit">加入房间</button>
-  </form>
+  <view class="title">加入房间</view>
+  
+  <view class="card">
+    <view class="input-group">
+      <view class="input-label">输入6位房间号</view>
+      <input 
+        class="input room-input" 
+        type="number"
+        placeholder="000000" 
+        maxlength="6"
+        value="{{roomId}}"
+        bindinput="onRoomIdInput"
+      />
+    </view>
+  </view>
+
+  <button class="btn {{isJoining ? 'btn-disabled' : ''}}" 
+          bindtap="joinRoom" 
+          disabled="{{isJoining}}">
+    {{isJoining ? '加入中...' : '加入房间'}}
+  </button>
+  
+  <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
 </view>

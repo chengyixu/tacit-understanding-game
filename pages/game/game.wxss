@@ -1,0 +1,28 @@
+.battle-container {
+  width: 100%;
+  padding: 20rpx;
+}
+
+.player-info {
+  font-size: 24rpx;
+  color: #8B8680;
+}
+
+.history-container {
+  width: 100%;
+  margin-top: 40rpx;
+  padding: 0 40rpx;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

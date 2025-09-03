@@ -1,0 +1,231 @@
+.tacit-container {
+  margin-top: 40rpx;
+}
+
+.tacit-value {
+  font-size: 64rpx;
+  font-weight: 300;
+  color: #A8A196;
+  text-align: center;
+  margin: 20rpx 0;
+}
+
+.tacit-level {
+  font-size: 32rpx;
+  color: #6B6660;
+  text-align: center;
+  margin-bottom: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+.players-summary {
+  text-align: center;
+  margin-top: 32rpx;
+  font-size: 26rpx;
+  color: #8B8680;
+  letter-spacing: 1rpx;
+}
+
+/* 计算摘要样式 */
+.calculation-summary {
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background: #F9F8F6;
+  border-radius: 12rpx;
+}
+
+.calc-method {
+  text-align: center;
+  font-size: 24rpx;
+  color: #A8A196;
+  margin-bottom: 12rpx;
+  font-weight: 500;
+}
+
+.calc-formula {
+  text-align: center;
+  font-size: 30rpx;
+  color: #6B6660;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+
+.calc-stats {
+  text-align: center;
+  font-size: 26rpx;
+  color: #8B8680;
+  margin-bottom: 12rpx;
+}
+
+.calc-info {
+  text-align: center;
+  font-size: 24rpx;
+  color: #A8A196;
+  margin-bottom: 12rpx;
+}
+
+.calc-explanation {
+  text-align: center;
+  font-size: 22rpx;
+  color: #B8B1A6;
+  line-height: 1.6;
+  padding: 0 20rpx;
+  margin-top: 16rpx;
+}
+
+/* 详细对比样式 */
+.detail-title {
+  font-size: 32rpx;
+  color: #6B6660;
+  font-weight: 500;
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.detail-list {
+  padding: 0 20rpx;
+}
+
+.detail-item {
+  margin-bottom: 30rpx;
+  padding-bottom: 30rpx;
+  border-bottom: 1rpx solid #E8E4DC;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.round-number {
+  font-size: 24rpx;
+  color: #A8A196;
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.battle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.player-battle {
+  padding: 16rpx;
+  background: #F9F8F6;
+  border-radius: 8rpx;
+}
+
+.player-name {
+  display: block;
+  font-size: 24rpx;
+  color: #8B8680;
+  margin-bottom: 8rpx;
+  font-weight: 500;
+}
+
+.battle-text {
+  display: block;
+  font-size: 26rpx;
+  color: #6B6660;
+  margin-bottom: 8rpx;
+}
+
+.choice-result {
+  display: block;
+  font-size: 28rpx;
+  color: #5B5650;
+  font-weight: 500;
+  margin-top: 8rpx;
+}
+
+/* Champions Display */
+.champions-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30rpx;
+  gap: 30rpx;
+}
+
+.player-champion {
+  flex: 1;
+  text-align: center;
+}
+
+.player-label {
+  font-size: 26rpx;
+  color: #8B8680;
+  margin-bottom: 16rpx;
+}
+
+.no-champion {
+  font-size: 28rpx;
+  color: #6B6660;
+  padding: 20rpx;
+  background: rgba(0,0,0,0.1);
+  border-radius: 12rpx;
+}
+
+.btn-debug {
+  background: #3A3830;
+  color: #A8A196;
+  font-size: 24rpx;
+  padding: 16rpx 32rpx;
+  margin-top: 20rpx;
+}
+
+/* Debug Panel Styles */
+.debug-panel {
+  margin-top: 40rpx;
+  background: #2A2820;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  max-height: 600rpx;
+}
+
+.debug-title {
+  font-size: 32rpx;
+  color: #A8A196;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.debug-scroll {
+  max-height: 500rpx;
+  background: #1E1C16;
+  border-radius: 8rpx;
+  padding: 16rpx;
+}
+
+.debug-entry {
+  margin-bottom: 16rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #3A3830;
+}
+
+.debug-entry:last-child {
+  border-bottom: none;
+}
+
+.debug-time {
+  color: #888;
+  font-size: 22rpx;
+  margin-right: 8rpx;
+}
+
+.debug-message {
+  color: #F0E9E0;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.debug-data {
+  margin-top: 8rpx;
+  padding: 8rpx;
+  background: #252218;
+  border-radius: 4rpx;
+  font-size: 20rpx;
+  color: #B8B1A6;
+  word-break: break-all;
+  white-space: pre-wrap;
+}

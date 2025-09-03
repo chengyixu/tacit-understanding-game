@@ -1,33 +1,56 @@
-<!-- pages/game/game.wxml -->
 <view class="container">
-  <view class="header">
-    <text>房间号：{{roomId}}</text>
-    <text>当前玩家：{{players.join('、')}}</text>
-  </view>
-  
-  <text class="score">当前默契值：{{score}}</text>
-  
-  <view wx:if="{{!choices}}" class="choices">
-    <button 
-      data-choice="A" 
-      bindtap="makeChoice" 
-      class="choice-btn" 
-      hover-class="btn-hover"
-    >选择A</button>
-    <button 
-      data-choice="B" 
-      bindtap="makeChoice" 
-      class="choice-btn" 
-      hover-class="btn-hover"
-    >选择B</button>
+  <view class="status-bar">
+    <view class="room-info">
+      <text>房间: {{roomId}}</text>
+    </view>
+    <view class="player-info">
+      <text>{{playerInfo.nickname}} vs {{opponentInfo.nickname}}</text>
+    </view>
   </view>
 
-  <view wx:else class="result">
-    <view class="result-title">本轮结果：</view>
-    <view wx:for="{{choices}}" wx:key="key" class="choice-item">
-      <text class="nickname">{{key}}：</text>
-      <text class="choice">{{item === 'A' ? '选项A' : '选项B'}}</text>
+  <view class="battle-progress">
+    <view class="battle-bar" style="width: {{roundProgress}}%"></view>
+  </view>
+  <view class="battle-number">第 {{currentBattle.round}}/{{totalRounds}} 轮</view>
+
+  <view wx:if="{{currentBattle}}" class="battle-container">
+    <view class="battle-instruction">选择你更喜欢的一个</view>
+    
+    <view class="vs-container">
+      <view class="noun-card {{selectedNounId == currentBattle.noun1.id ? 'selected' : ''}}"
+            data-id="{{currentBattle.noun1.id}}"
+            bindtap="selectNoun">
+        <view class="noun-name">{{currentBattle.noun1.name}}</view>
+        <view class="noun-category">{{currentBattle.noun1.category}}</view>
+      </view>
+      
+      <view class="vs-text">VS</view>
+      
+      <view class="noun-card {{selectedNounId == currentBattle.noun2.id ? 'selected' : ''}}"
+            data-id="{{currentBattle.noun2.id}}"
+            bindtap="selectNoun">
+        <view class="noun-name">{{currentBattle.noun2.name}}</view>
+        <view class="noun-category">{{currentBattle.noun2.category}}</view>
+      </view>
     </view>
-    <view class="new-score">新默契值：{{score}}</view>
+
+    <view wx:if="{{waitingForOpponent && selectedNounId}}" class="waiting-message">
+      等待对手选择中...
+    </view>
+  </view>
+
+  <view wx:else class="loading-container">
+    <view class="loading-text">准备下一轮...</view>
+    <view class="loading-spinner"></view>
+  </view>
+
+  <view wx:if="{{battleHistory.length > 0}}" class="history-container">
+    <view class="subtitle">淘汰记录</view>
+    <view class="eliminated-list">
+      <view wx:for="{{battleHistory}}" wx:key="round" class="eliminated-item">
+        <text>第{{item.round}}轮</text>
+        <text class="eliminated-category">{{item.loser.name}} 淘汰</text>
+      </view>
+    </view>
   </view>
 </view>

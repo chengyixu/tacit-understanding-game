@@ -1,0 +1,6 @@
+.room-input {
+  text-align: center;
+  font-size: 40rpx;
+  letter-spacing: 8rpx;
+  font-weight: 300;
+}

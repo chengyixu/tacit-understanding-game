@@ -1,0 +1,113 @@
+<view class="container">
+  <view class="title">游戏结束</view>
+  
+  <view class="result-card">
+    <view class="result-title">最终获胜词汇</view>
+    
+    <!-- Display both players' champions -->
+    <view class="champions-container">
+      <view class="player-champion">
+        <view class="player-label">{{playerInfo.nickname}}的冠军词</view>
+        <view wx:if="{{myChampion}}" class="champion-card">
+          <view class="champion-name">{{myChampion.name}}</view>
+          <view class="champion-category">{{myChampion.category}}</view>
+        </view>
+        <view wx:else class="no-champion">未获得冠军词</view>
+      </view>
+      
+      <view class="player-champion">
+        <view class="player-label">{{opponentInfo.nickname}}的冠军词</view>
+        <view wx:if="{{opponentChampion}}" class="champion-card">
+          <view class="champion-name">{{opponentChampion.name}}</view>
+          <view class="champion-category">{{opponentChampion.category}}</view>
+        </view>
+        <view wx:else class="no-champion">未获得冠军词</view>
+      </view>
+    </view>
+    
+    <view class="tacit-container">
+      <view class="result-title">默契值</view>
+      <view class="tacit-value">{{tacitValue}}%</view>
+      <view class="tacit-level">{{tacitLevel}}</view>
+      
+      <view class="tacit-progress">
+        <view class="tacit-bar" style="width: {{tacitValue}}%"></view>
+      </view>
+      
+      <!-- 计算步骤展示 -->
+      <view class="calculation-summary">
+        <view wx:if="{{calculationDetails}}">
+          <view class="calc-method">{{calculationDetails.method || 'Matrix Correlation'}}</view>
+          <view class="calc-formula">{{calculationDetails.calculation || '计算中...'}}</view>
+          <view wx:if="{{calculationDetails.correlation}}" class="calc-stats">
+            <text>相关系数: {{calculationDetails.correlation}}</text>
+            <text wx:if="{{calculationDetails.p_value}}"> | p值: {{calculationDetails.p_value}}</text>
+          </view>
+          <view wx:if="{{calculationDetails.matrix_size}}" class="calc-info">
+            <text>矩阵大小: {{calculationDetails.matrix_size}}</text>
+            <text wx:if="{{calculationDetails.data_points}}"> | 数据点: {{calculationDetails.data_points}}</text>
+          </view>
+          <view wx:if="{{calculationDetails.explanation}}" class="calc-explanation">{{calculationDetails.explanation}}</view>
+        </view>
+        <view wx:else class="calc-method">
+          基于选择偏好矩阵的皮尔逊相关性分析
+        </view>
+      </view>
+    </view>
+    
+    <view class="players-summary">
+      <text>{{playerInfo.nickname}} & {{opponentInfo.nickname}}</text>
+    </view>
+  </view>
+
+  <!-- 详细选择对比 -->
+  <view wx:if="{{calculationDetails.choices && calculationDetails.choices.length > 0}}" class="card">
+    <view class="detail-title">选择对比详情</view>
+    <view class="detail-list">
+      <view wx:for="{{calculationDetails.choices}}" wx:key="round" class="detail-item">
+        <view class="round-number">第{{item.round}}轮</view>
+        <view class="battle-info">
+          <view class="player-battle">
+            <text class="player-name">{{playerInfo.nickname}}</text>
+            <text class="battle-text">{{item.player1_battle}}</text>
+            <text class="choice-result">选择: {{item.player1_choice}}</text>
+          </view>
+          <view class="player-battle">
+            <text class="player-name">{{opponentInfo.nickname}}</text>
+            <text class="battle-text">{{item.player2_battle}}</text>
+            <text class="choice-result">选择: {{item.player2_choice}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{eliminatedNouns.length > 0}}" class="card">
+    <view class="eliminated-title">淘汰词汇</view>
+    <view class="eliminated-list">
+      <view wx:for="{{eliminatedNouns}}" wx:key="id" class="eliminated-item">
+        <text>{{item.name}}</text>
+        <text class="eliminated-category">{{item.category}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn" bindtap="playAgain">再来一局</button>
+  <button class="btn btn-special" bindtap="shareResult">分享结果</button>
+  <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
+  <button class="btn btn-debug" bindtap="toggleDebug">{{showDebug ? '隐藏' : '显示'}}调试日志</button>
+  
+  <!-- Debug Log Panel -->
+  <view wx:if="{{showDebug}}" class="debug-panel">
+    <view class="debug-title">🔍 调试日志</view>
+    <scroll-view scroll-y class="debug-scroll">
+      <view wx:for="{{debugLog}}" wx:key="index" class="debug-entry">
+        <text class="debug-time">[{{item.time}}]</text>
+        <text class="debug-message">{{item.message}}</text>
+        <view wx:if="{{item.data}}" class="debug-data">
+          <text>{{item.data}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

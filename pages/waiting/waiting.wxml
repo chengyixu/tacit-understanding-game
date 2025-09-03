@@ -1,10 +1,45 @@
-<!-- pages/waiting/waiting.wxml -->
 <view class="container">
-  <text>房间号：{{roomId}}</text> <!-- 改为使用本地状态 -->
-  <view>当前玩家：
-    <block wx:for="{{players}}" wx:key="index">
-      {{item}} 
-    </block>
+  <view class="title">等待室</view>
+  
+  <view class="status-bar">
+    <view class="room-info">
+      <text>房间号: {{roomId}}</text>
+    </view>
   </view>
-  <button wx:if="{{showStart}}" bindtap="startGame">开始游戏</button>
+
+  <view class="card">
+    <view class="player-list">
+      <view class="player-item">
+        <view class="player-name">{{playerInfo.nickname}}</view>
+        <view class="player-status">{{isHost ? '房主' : '玩家'}}</view>
+      </view>
+      
+      <view class="player-item" wx:if="{{opponentInfo}}">
+        <view class="player-name">{{opponentInfo.nickname}}</view>
+        <view class="player-status">{{isHost ? '玩家' : '房主'}}</view>
+      </view>
+      
+      <view class="player-item waiting" wx:else>
+        <view class="player-name">等待玩家加入...</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{isReady}}" class="countdown-container">
+    <view class="countdown-text">游戏即将开始</view>
+    <view class="countdown-number">{{countdown}}</view>
+  </view>
+
+  <button wx:if="{{isHost && opponentInfo && !isReady}}" 
+          class="btn" 
+          bindtap="startGame">
+    开始游戏
+  </button>
+  
+  <view wx:elif="{{!isHost && opponentInfo && !isReady}}" 
+        class="waiting-message">
+    等待房主开始游戏...
+  </view>
+
+  <button class="btn btn-secondary" bindtap="leaveRoom">离开房间</button>
 </view>

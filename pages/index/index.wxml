@@ -1,5 +1,37 @@
-<!-- pages/index/index.wxml -->
 <view class="container">
-  <button bindtap="navigateToCreate">创建游戏</button>
-  <button bindtap="navigateToJoin">加入游戏</button>
+  <view class="title">默契小游戏</view>
+  
+  <view class="status-bar">
+    <view class="network-info">
+      <view class="dot {{connectionStatus === '已连接' ? 'dot-connected' : 'dot-disconnected'}}"></view>
+      <text>{{connectionStatus}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="input-group">
+      <view class="input-label">输入你的昵称</view>
+      <input 
+        class="input" 
+        placeholder="最多10个字符" 
+        maxlength="10"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+    
+    <view class="switch-group">
+      <view class="switch-label">
+        <text>🤖 AI测试模式</text>
+        <text class="switch-desc">创建房间后自动加入AI对手</text>
+      </view>
+      <switch checked="{{testMode}}" bindchange="toggleTestMode" />
+    </view>
+  </view>
+
+  <button class="btn" bindtap="createRoom">创建房间</button>
+  <button class="btn btn-secondary" bindtap="joinRoom">加入房间</button>
+  <button class="btn btn-special" bindtap="enterChallenge">专项挑战</button>
+  
+  <view class="version-info">v2.5.0 - 完整功能版</view>
 </view>

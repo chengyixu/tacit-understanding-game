@@ -1,0 +1,21 @@
+.room-id-display {
+  text-align: center;
+  padding: 40rpx 0;
+  background: #F7F6F4;
+  border-radius: 4rpx;
+  margin: 24rpx 0;
+}
+
+.room-id {
+  font-size: 48rpx;
+  font-weight: 300;
+  letter-spacing: 8rpx;
+  color: #5D5D5D;
+}
+
+.invite-text {
+  font-size: 26rpx;
+  color: #8B8680;
+  line-height: 1.8;
+  letter-spacing: 1rpx;
+}

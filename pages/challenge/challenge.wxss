@@ -1,0 +1,36 @@
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+  margin: 40rpx 0;
+  width: 100%;
+}
+
+.category-item {
+  background: #FFFFFF;
+  border: 1rpx solid #E8E5E0;
+  border-radius: 4rpx;
+  padding: 32rpx;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.category-item:active {
+  opacity: 0.8;
+}
+
+.category-item.selected {
+  background: #A8A196;
+  border-color: #A8A196;
+  color: #FFFFFF;
+}
+
+.category-icon {
+  font-size: 48rpx;
+  margin-bottom: 16rpx;
+}
+
+.category-name {
+  font-size: 26rpx;
+  letter-spacing: 1rpx;
+}
