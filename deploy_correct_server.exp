@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+# Copy the correct server0405.py to backend
+spawn scp server0405.py word_bank.json root@47.117.176.214:/moqiyouxi_backend/
+expect "password:"
+send "0212Connect!\r"
+expect eof
+
+# SSH and restart server
+spawn ssh root@47.117.176.214
+expect "password:"
+send "0212Connect!\r"
+expect "~]#"
+
+send "cd /moqiyouxi_backend\r"
+expect "]#"
+
+# Kill old server
+send "pkill -f server0405.py\r"
+expect "]#"
+
+send "sleep 2\r"
+expect "]#"
+
+# Start new server
+send "nohup python3 server0405.py > server.log 2>&1 &\r"
+expect "]#"
+
+send "sleep 3\r"
+expect "]#"
+
+# Check it's running
+send "ps aux | grep server0405.py | grep -v grep\r"
+expect "]#"
+
+send "tail -10 server.log\r"
+expect "]#"
+
+send "exit\r"
+expect eof

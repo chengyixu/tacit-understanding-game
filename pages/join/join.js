@@ -31,21 +31,11 @@ Page({
     
     this.setData({ isJoining: true });
     
-    const joinData = {
+    app.sendMessage({
       action: 'joinRoom',
       roomId: this.data.roomId,
       playerInfo: app.globalData.playerInfo
-    };
-    
-    console.log('Sending join request:', joinData);
-    wx.showToast({
-      title: `加入房间 ${this.data.roomId}...`,
-      icon: 'loading',
-      duration: 10000
     });
-    
-    const sent = app.sendMessage(joinData);
-    console.log('Message sent result:', sent);
     
     app.globalData.roomId = this.data.roomId;
     app.globalData.isHost = false;
@@ -74,15 +64,8 @@ Page({
   handleMessage(data) {
     console.log('Join page received:', data);
     
-    // Add visible debug info
-    wx.showToast({
-      title: `收到: ${data.action}`,
-      icon: 'none',
-      duration: 2000
-    });
-    
     if (data.action === 'joinedRoom') {
-      console.log('Received joinedRoom, redirecting...');
+      console.log('Received joinedRoom, redirecting to waiting room...');
       this.setData({ isJoining: false });
       wx.redirectTo({
         url: '/pages/waiting/waiting'
@@ -94,8 +77,6 @@ Page({
         title: data.message || '加入失败',
         icon: 'none'
       });
-    } else {
-      console.log('Unexpected action:', data.action);
     }
   },
 

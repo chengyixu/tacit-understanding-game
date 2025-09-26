@@ -29,10 +29,10 @@
     
     <view class="switch-group">
       <view class="switch-label">
-        <text>🤖 AI测试模式</text>
-        <text class="switch-desc">创建房间后自动加入AI对手</text>
+        <text class="switch-title">🤖 AI测试模式</text>
+        <text class="switch-desc">启用后将与AI对战，无需等待真人玩家</text>
       </view>
-      <switch checked="{{testMode}}" bindchange="toggleTestMode" />
+      <switch checked="{{testMode}}" bindchange="toggleTestMode" color="#667eea" />
     </view>
   </view>
 

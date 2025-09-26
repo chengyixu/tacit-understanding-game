@@ -84,16 +84,7 @@ App({
     wx.onSocketMessage((res) => {
       try {
         const data = JSON.parse(res.data);
-        console.log('App.js 收到消息:', data);
-        
-        // Show debug toast for all messages
-        if (data.action !== 'pong') {
-          wx.showToast({
-            title: `WS: ${data.action}`,
-            icon: 'none',
-            duration: 1000
-          });
-        }
+        console.log('收到消息:', data);
         
         if (data.action === 'pong') {
           // Heartbeat response
@@ -112,10 +103,7 @@ App({
         }
         
         if (this.globalData.messageCallback) {
-          console.log('Calling message callback with:', data.action);
           this.globalData.messageCallback(data);
-        } else {
-          console.log('No message callback set for action:', data.action);
         }
       } catch (error) {
         console.error('解析消息失败:', error);
@@ -226,5 +214,9 @@ App({
     this.globalData.isHost = false;
     this.globalData.challengeMode = false;
     this.globalData.challengeCategory = null;
+    this.globalData.testMode = false;
+    this.globalData.aiPlayer = null;
+    this.globalData.groupMode = false;
+    this.globalData.maxPlayers = 2;
   }
 });

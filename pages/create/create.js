@@ -64,6 +64,36 @@ Page({
     app.globalData.isHost = true;
     app.globalData.groupMode = this.data.groupMode;
     app.globalData.maxPlayers = this.data.maxPlayers;
+    
+    // If test mode is enabled, create virtual AI player
+    if (app.globalData.testMode) {
+      this.createVirtualAIPlayer(roomId);
+    }
+  },
+  
+  createVirtualAIPlayer(roomId) {
+    // Simulate AI player joining after a short delay
+    setTimeout(() => {
+      console.log('Creating virtual AI player for room:', roomId);
+      
+      // Create AI player info
+      const aiPlayer = {
+        playerId: 'ai-' + Date.now(),
+        nickname: 'AI对手',
+        isAI: true
+      };
+      
+      // Store AI player info
+      app.globalData.aiPlayer = aiPlayer;
+      
+      // Simulate AI joining the room
+      app.sendMessage({
+        action: 'joinRoom',
+        roomId: roomId,
+        playerInfo: aiPlayer,
+        isAI: true
+      });
+    }, 1000);
   },
 
   generateRoomId() {
