@@ -25,4 +25,12 @@
   to {
     transform: rotate(360deg);
   }
+}.ai-caption {
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(184, 177, 166, 0.6);
+  letter-spacing: 1rpx;
 }

@@ -47,3 +47,43 @@
   font-weight: 300;
   color: #A8A196;
 }
+
+/* Group Mode Styles */
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid #E8E5E0;
+}
+
+.group-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #3D3833;
+}
+
+.player-count {
+  font-size: 24rpx;
+  color: #A8A196;
+  padding: 8rpx 16rpx;
+  background: #F7F6F4;
+  border-radius: 20rpx;
+}
+
+.waiting-message {
+  text-align: center;
+  font-size: 26rpx;
+  color: #8B8680;
+  padding: 20rpx;
+  margin: 20rpx 0;
+}.ai-caption {
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(184, 177, 166, 0.6);
+  letter-spacing: 1rpx;
+}

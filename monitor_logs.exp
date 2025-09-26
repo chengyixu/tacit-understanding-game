@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+spawn ssh root@47.117.176.214
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+
+expect "# "
+send "cd /moqiyouxi_backend\r"
+expect "# "
+send "tail -f server.log\r"
+
+# Let it run until user interrupts
+interact

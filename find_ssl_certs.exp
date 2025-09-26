@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+spawn ssh root@47.117.176.214
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+
+expect "# "
+send "cd /moqiyouxi_backend\r"
+expect "# "
+send "find /www/server -name '*.pem' -o -name '*.key' 2>/dev/null | grep -v test | head -20\r"
+expect "# "
+send "ls -la /www/server/panel/vhost/cert/\r"
+expect "# "
+send "hostname -f\r"
+expect "# "
+send "exit\r"
+expect eof

@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+spawn ssh root@43.137.34.201
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+
+expect "# "
+send "netstat -tlnp | grep -E ':3000|:3001'\r"
+expect "# "
+send "cd /moqiyouxi_backend\r"
+expect "# "
+send "grep 'port =' server0405.py | tail -5\r"
+expect "# "
+send "exit\r"
+expect eof

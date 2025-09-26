@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+spawn ssh root@47.117.176.214
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+
+expect "# "
+send "cd /moqiyouxi_backend\r"
+expect "# "
+send "ls -la\r"
+expect "# "
+send "find /www -name '*.pem' -o -name '*.crt' 2>/dev/null | head -10\r"
+expect "# "
+send "find /etc -name '*.pem' -o -name '*.crt' 2>/dev/null | head -10\r"
+expect "# "
+send "pip3 install tornado numpy scipy\r"
+expect "# "
+send "exit\r"
+expect eof

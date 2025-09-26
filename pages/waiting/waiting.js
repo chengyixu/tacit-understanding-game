@@ -7,7 +7,11 @@ Page({
     opponentInfo: null,
     isHost: false,
     isReady: false,
-    countdown: 3
+    countdown: 3,
+    groupMode: false,
+    maxPlayers: 2,
+    allPlayers: [],
+    currentPlayerCount: 1
   },
 
   onLoad() {
@@ -16,10 +20,16 @@ Page({
       return;
     }
 
+    const groupMode = app.globalData.groupMode || false;
+    const maxPlayers = app.globalData.maxPlayers || 2;
+
     this.setData({
       roomId: app.globalData.roomId,
       playerInfo: app.globalData.playerInfo,
-      isHost: app.globalData.isHost
+      isHost: app.globalData.isHost,
+      groupMode: groupMode,
+      maxPlayers: maxPlayers,
+      allPlayers: [app.globalData.playerInfo]
     });
 
     app.setMessageCallback(this.handleMessage.bind(this));
@@ -43,17 +53,19 @@ Page({
     // If host, try to create/reconnect to room
     if (this.data.isHost) {
       app.sendMessage({
-        action: 'create_room',
+        action: 'createRoom',
         roomId: app.globalData.roomId,
         playerInfo: app.globalData.playerInfo,
         challengeMode: app.globalData.challengeMode || false,
         challengeCategory: app.globalData.challengeCategory || null,
-        testMode: app.globalData.testMode || false
+        testMode: app.globalData.testMode || false,
+        groupMode: this.data.groupMode,
+        maxPlayers: this.data.maxPlayers
       });
     } else {
       // If guest, rejoin the room
       app.sendMessage({
-        action: 'join_room',
+        action: 'joinRoom',
         roomId: app.globalData.roomId,
         playerInfo: app.globalData.playerInfo
       });
@@ -69,42 +81,72 @@ Page({
     console.log('Current state - isHost:', this.data.isHost, 'opponentInfo:', this.data.opponentInfo);
     
     // Handle reconnection responses
-    if (data.action === 'room_created' || data.action === 'joined_room') {
+    if (data.action === 'roomCreated' || data.action === 'joinedRoom') {
       console.log('Successfully reconnected to room');
       // Room reconnection successful, no need to show anything
       return;
     }
 
-    if (data.action === 'player_joined') {
-      console.log('Player joined:', data.playerInfo);
-      this.setData({
-        opponentInfo: data.playerInfo
-      });
-      app.globalData.opponentInfo = data.playerInfo;
+    if (data.action === 'roomUpdate') {
+      console.log('Room update:', data);
       
-      wx.showToast({
-        title: `${data.playerInfo.nickname} 加入了房间`,
-        icon: 'success'
-      });
-
-      if (this.data.isHost) {
-        setTimeout(() => this.startGame(), 1000);
+      // Update room status with players list
+      if (data.players) {
+        this.setData({
+          allPlayers: data.players,
+          currentPlayerCount: data.players.length
+        });
+        
+        // In 2-player mode, find the opponent
+        if (!this.data.groupMode && data.players.length === 2) {
+          const opponent = data.players.find(p => p.playerId !== this.data.playerInfo.playerId);
+          if (opponent && !this.data.opponentInfo) {
+            this.setData({ opponentInfo: opponent });
+            app.globalData.opponentInfo = opponent;
+            
+            wx.showToast({
+              title: `${opponent.nickname} 加入了房间`,
+              icon: 'success'
+            });
+            
+            // Auto-start for host when opponent joins
+            if (this.data.isHost) {
+              setTimeout(() => this.startGame(), 1000);
+            }
+          }
+        } else if (this.data.groupMode) {
+          // In group mode, check if room is full
+          if (this.data.currentPlayerCount >= this.data.maxPlayers && this.data.isHost) {
+            setTimeout(() => this.startGame(), 1000);
+          }
+        }
       }
     } else if (data.action === 'room_full') {
       console.log('Room full, opponent:', data.opponentInfo);
-      this.setData({
-        opponentInfo: data.opponentInfo
-      });
-      app.globalData.opponentInfo = data.opponentInfo;
+      
+      if (this.data.groupMode) {
+        // Group mode room full
+        if (data.players) {
+          this.setData({
+            allPlayers: data.players,
+            currentPlayerCount: data.players.length
+          });
+        }
+      } else {
+        this.setData({
+          opponentInfo: data.opponentInfo
+        });
+        app.globalData.opponentInfo = data.opponentInfo;
+      }
       
       // Auto-start for host when room is full
       if (this.data.isHost && !this.data.isReady) {
         console.log('Host auto-starting game...');
         setTimeout(() => this.startGame(), 1000);
       }
-    } else if (data.action === 'game_starting') {
+    } else if (data.action === 'gameStarting') {
       this.handleGameStarting();
-    } else if (data.action === 'game_started') {
+    } else if (data.action === 'gameStarted') {
       wx.redirectTo({
         url: '/pages/game/game'
       });
@@ -127,12 +169,24 @@ Page({
   },
 
   startGame() {
-    if (!this.data.opponentInfo) {
-      wx.showToast({
-        title: '等待对手加入',
-        icon: 'none'
-      });
-      return;
+    if (this.data.groupMode) {
+      // Group mode: check if we have enough players
+      if (this.data.currentPlayerCount < this.data.maxPlayers) {
+        wx.showToast({
+          title: `等待更多玩家加入 (${this.data.currentPlayerCount}/${this.data.maxPlayers})`,
+          icon: 'none'
+        });
+        return;
+      }
+    } else {
+      // 2-player mode
+      if (!this.data.opponentInfo) {
+        wx.showToast({
+          title: '等待对手加入',
+          icon: 'none'
+        });
+        return;
+      }
     }
 
     app.sendMessage({

@@ -1,7 +1,34 @@
 <view class="container">
   <view class="title">游戏结束</view>
   
-  <view class="result-card">
+  <!-- Group Mode Results -->
+  <view wx:if="{{groupMode}}" class="result-card">
+    <view class="result-title">多人派对结果</view>
+    
+    <view class="champion-card">
+      <view class="champion-name">我的冠军词: {{myChampion.name}}</view>
+      <view class="champion-category">{{myChampion.category}}</view>
+    </view>
+    
+    <view class="group-tacit-title">默契度排行榜</view>
+    <view class="pairwise-scores">
+      <view wx:for="{{myPairwiseScores}}" wx:key="playerName" class="score-item">
+        <view class="score-rank">#{{index + 1}}</view>
+        <view class="score-info">
+          <view class="score-player">{{item.playerName}}</view>
+          <view class="score-value">{{item.tacitScore}}%</view>
+          <view class="score-level">{{item.tacitLevel}}</view>
+        </view>
+      </view>
+    </view>
+    
+    <view wx:if="{{myPairwiseScores[0]}}" class="best-match-message">
+      🏆 你和 {{myPairwiseScores[0].playerName}} 最有默契！
+    </view>
+  </view>
+  
+  <!-- 2-Player Mode Results -->
+  <view wx:else class="result-card">
     <view class="result-title">最终获胜词汇</view>
     
     <!-- Display both players' champions -->
@@ -91,11 +118,53 @@
       </view>
     </view>
   </view>
+  
+  <!-- Famous Pairs Comparison -->
+  <view class="card">
+    <view class="famous-pairs-header">
+      <view class="famous-pairs-title">📊 历史CP对比</view>
+      <button class="btn-toggle" bindtap="toggleFamousPairs">
+        {{showFamousPairs ? '收起' : '展开'}}
+      </button>
+    </view>
+    
+    <view wx:if="{{showFamousPairs}}" class="famous-pairs-list">
+      <view class="famous-pairs-intro">看看你们和历史上的著名CP相比如何：</view>
+      <view wx:for="{{famousPairs}}" wx:key="index" class="famous-pair-item">
+        <view class="pair-names">
+          <text class="pair-name">{{item.name1}} & {{item.name2}}</text>
+          <text class="pair-category">{{item.category}}</text>
+        </view>
+        <view class="pair-description">{{item.description}}</view>
+        <view class="pair-score-comparison">
+          <view class="pair-score">默契度: {{item.tacitScore}}%</view>
+          <view class="comparison-badge {{item.tacitScore > tacitValue ? 'badge-higher' : item.tacitScore < tacitValue ? 'badge-lower' : 'badge-equal'}}">
+            {{item.comparison}}
+          </view>
+        </view>
+        <view class="score-bar-container">
+          <view class="score-bar-bg">
+            <view class="score-bar-fill" style="width: {{item.tacitScore}}%"></view>
+          </view>
+          <view class="your-score-marker" style="left: {{tacitValue}}%">
+            <text class="marker-text">你们</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view wx:else class="famous-pairs-summary">
+      <text>与 {{famousPairs[0].name1}} & {{famousPairs[0].name2}} 最接近 ({{famousPairs[0].tacitScore}}%)</text>
+    </view>
+  </view>
 
   <button class="btn" bindtap="playAgain">再来一局</button>
-  <button class="btn btn-special" bindtap="shareResult">分享结果</button>
+  <button class="btn btn-special" bindtap="shareResult">生成证书并分享</button>
   <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
   <button class="btn btn-debug" bindtap="toggleDebug">{{showDebug ? '隐藏' : '显示'}}调试日志</button>
+  
+  <!-- Hidden canvas for certificate generation -->
+  <canvas canvas-id="certificateCanvas" style="position: fixed; top: -9999px; width: 375px; height: 500px;"></canvas>
   
   <!-- Debug Log Panel -->
   <view wx:if="{{showDebug}}" class="debug-panel">
@@ -110,4 +179,5 @@
       </view>
     </scroll-view>
   </view>
+  <view class="ai-caption">AI生成、人工智能生成</view>
 </view>

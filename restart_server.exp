@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+spawn ssh root@47.117.176.214
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+
+expect "# "
+send "cd /moqiyouxi_backend\r"
+expect "# "
+send "pkill -f server0405.py\r"
+expect "# "
+send "sleep 2\r"
+expect "# "
+send "rm -f server0405.py\r"
+expect "# "
+send "mv server0405_new.py server0405.py\r"
+expect "# "
+send "nohup python3 server0405.py > server.log 2>&1 &\r"
+expect "# "
+send "sleep 5\r"
+expect "# "
+send "tail -30 server.log\r"
+expect "# "
+send "ps aux | grep server0405 | grep -v grep\r"
+expect "# "
+send "netstat -tlnp | grep :3001\r"
+expect "# "
+send "exit\r"
+expect eof

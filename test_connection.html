@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        #log {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #ccc;
+        }
+        .success { border-left-color: #4CAF50; background: #e8f5e9; }
+        .error { border-left-color: #f44336; background: #ffebee; }
+        .info { border-left-color: #2196F3; background: #e3f2fd; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <p>Server: wss://www.panor.tech:3001/ws</p>
+    
+    <button onclick="connect()">Connect</button>
+    <button onclick="register()">Register</button>
+    <button onclick="createRoom()">Create Room</button>
+    <button onclick="disconnect()">Disconnect</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log"></div>
+
+    <script>
+        let ws = null;
+        let playerId = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function connect() {
+            if (ws) {
+                log('Already connected', 'error');
+                return;
+            }
+
+            log('Connecting to wss://www.panor.tech:3001/ws...', 'info');
+            
+            try {
+                ws = new WebSocket('wss://www.panor.tech:3001/ws');
+                
+                ws.onopen = () => {
+                    log('WebSocket connected!', 'success');
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        log('Received: ' + JSON.stringify(data), 'info');
+                        
+                        if (data.action === 'registered') {
+                            playerId = data.playerId;
+                            log(`Player registered with ID: ${playerId}`, 'success');
+                        }
+                    } catch (e) {
+                        log('Failed to parse message: ' + event.data, 'error');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    log('WebSocket error: ' + error, 'error');
+                };
+
+                ws.onclose = () => {
+                    log('WebSocket disconnected', 'info');
+                    ws = null;
+                    playerId = null;
+                };
+            } catch (e) {
+                log('Failed to connect: ' + e.message, 'error');
+            }
+        }
+
+        function register() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected', 'error');
+                return;
+            }
+            
+            const msg = JSON.stringify({ action: 'register' });
+            log('Sending: ' + msg, 'info');
+            ws.send(msg);
+        }
+
+        function createRoom() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected', 'error');
+                return;
+            }
+            
+            const msg = JSON.stringify({ 
+                action: 'createRoom',
+                nickname: 'TestUser'
+            });
+            log('Sending: ' + msg, 'info');
+            ws.send(msg);
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                playerId = null;
+                log('Disconnected', 'info');
+            } else {
+                log('Not connected', 'error');
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        // Auto-connect on load
+        window.onload = () => {
+            log('Page loaded. Click "Connect" to start.', 'info');
+        };
+    </script>
+</body>
+</html>

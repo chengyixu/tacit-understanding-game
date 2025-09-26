@@ -3,4 +3,12 @@
   font-size: 40rpx;
   letter-spacing: 8rpx;
   font-weight: 300;
+}.ai-caption {
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(184, 177, 166, 0.6);
+  letter-spacing: 1rpx;
 }

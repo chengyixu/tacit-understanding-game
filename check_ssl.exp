@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+
+set timeout 10
+spawn ssh root@43.137.34.201 "cd /moqiyouxi_backend && ls -la *.pem *.key 2>/dev/null | head -20"
+expect {
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "0212Connect!\r"
+    }
+}
+expect eof

@@ -40,6 +40,74 @@ def load_word_bank():
 
 load_word_bank()
 
+# Famous pairs with preset tacit scores for comparison
+FAMOUS_PAIRS = [
+    {
+        'id': 'liubei_guanyu',
+        'name1': '刘备',
+        'name2': '关羽',
+        'description': '桃园三结义',
+        'tacitScore': 95,
+        'category': '历史兄弟'
+    },
+    {
+        'id': 'zhuge_zhouyu',
+        'name1': '诸葛亮',
+        'name2': '周瑜',
+        'description': '既生瑜何生亮',
+        'tacitScore': 35,
+        'category': '宿敌'
+    },
+    {
+        'id': 'guo_yu',
+        'name1': '郭德纲',
+        'name2': '于谦',
+        'description': '相声黄金搭档',
+        'tacitScore': 92,
+        'category': '喜剧CP'
+    },
+    {
+        'id': 'romeo_juliet',
+        'name1': '罗密欧',
+        'name2': '朱丽叶',
+        'description': '莎士比亚经典',
+        'tacitScore': 88,
+        'category': '爱情传说'
+    },
+    {
+        'id': 'liangshan_zhuying',
+        'name1': '梁山伯',
+        'name2': '祝英台',
+        'description': '化蝶传说',
+        'tacitScore': 90,
+        'category': '爱情传说'
+    },
+    {
+        'id': 'sunwukong_tangseng',
+        'name1': '孙悟空',
+        'name2': '唐僧',
+        'description': '师徒情深',
+        'tacitScore': 75,
+        'category': '师徒'
+    },
+    {
+        'id': 'sherlock_watson',
+        'name1': '福尔摩斯',
+        'name2': '华生',
+        'description': '最佳拍档',
+        'tacitScore': 93,
+        'category': '侦探搭档'
+    },
+    {
+        'id': 'tom_jerry',
+        'name1': '汤姆',
+        'name2': '杰瑞',
+        'description': '相爱相杀',
+        'tacitScore': 65,
+        'category': '卡通CP'
+    }
+]
+
 class Room:
     def __init__(self, room_id, host_id):
         self.id = room_id
@@ -55,6 +123,11 @@ class Room:
         self.player_champions = {}  # Each player's final champion
         self.created_at = datetime.now()
         self.last_activity = datetime.now()
+        # Group Battle Mode
+        self.group_mode = False  # Is this a group battle?
+        self.max_players = 2  # Default to 2, can be 3-6 for group mode
+        self.player_choices = {}  # Round -> {player_id: choice} for group battles
+        self.tacit_matrix = {}  # player_id -> player_id -> tacit score
         
     def update_activity(self):
         self.last_activity = datetime.now()
@@ -150,6 +223,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         challenge_mode = data.get('challengeMode', False)
         challenge_category = data.get('challengeCategory')
         test_mode = data.get('testMode', False)  # AI test mode
+        group_mode = data.get('groupMode', False)  # Group battle mode
+        max_players = data.get('maxPlayers', 2)  # Number of players for group mode
         
         logger.info(f"Create room request - ID: '{room_id}', Player: {player_info}")
         logger.info(f"Current rooms: {list(ROOMS.keys())}")
@@ -196,7 +271,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
                             })
                     return
                     
-                elif len(room.players) < 2:
+                elif len(room.players) < room.max_players:
                     logger.info(f"Room {room_id} exists with {len(room.players)} players, treating as join")
                     # Redirect to join_room
                     self.handle_join_room(data)
@@ -228,6 +303,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         room.challenge_mode = challenge_mode
         room.challenge_category = challenge_category
         room.test_mode = test_mode  # Store test mode flag
+        room.group_mode = group_mode
+        if group_mode and max_players >= 3 and max_players <= 6:
+            room.max_players = max_players
         ROOMS[room_id] = room
         
         logger.info(f"Room '{room_id}' created successfully by {nickname}")
@@ -252,7 +330,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             return
             
         room = ROOMS[room_id]
-        if len(room.players) >= 2:
+        if len(room.players) >= room.max_players:
             return  # Room already full
             
         # Create AI player
@@ -986,6 +1064,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         player_ids = list(room.players)
         if len(player_ids) < 2:
             raise ValueError("Need at least 2 players for tacit value calculation")
+        
+        # For group mode, calculate pairwise tacit values
+        if room.group_mode and len(player_ids) > 2:
+            return self.calculate_group_tacit_values(room)
             
         t1 = room.player_tournaments.get(player_ids[0])
         t2 = room.player_tournaments.get(player_ids[1])
@@ -1106,6 +1188,131 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         }
         
         return tacit_value, calculation_details
+    
+    def calculate_group_tacit_values(self, room):
+        """Calculate tacit values between all pairs of players in group mode"""
+        import numpy as np
+        from scipy.stats import pearsonr
+        
+        player_ids = list(room.players)
+        n_players = len(player_ids)
+        
+        # Initialize tacit matrix
+        tacit_matrix = {}
+        
+        # Calculate pairwise tacit values
+        for i in range(n_players):
+            p1_id = player_ids[i]
+            tacit_matrix[p1_id] = {}
+            
+            for j in range(n_players):
+                p2_id = player_ids[j]
+                
+                if i == j:
+                    # Perfect tacit with self
+                    tacit_matrix[p1_id][p2_id] = 100
+                    continue
+                
+                # Get tournaments for both players
+                t1 = room.player_tournaments.get(p1_id)
+                t2 = room.player_tournaments.get(p2_id)
+                
+                if not t1 or not t2:
+                    tacit_matrix[p1_id][p2_id] = 0
+                    continue
+                
+                # Build preference matrices
+                word_ids = [w['id'] for w in room.word_pool]
+                n = len(word_ids)
+                id_to_idx = {word_id: idx for idx, word_id in enumerate(word_ids)}
+                
+                matrix1 = np.zeros((n, n))
+                matrix2 = np.zeros((n, n))
+                
+                # Fill matrix for player 1
+                for round_num, battle in t1.battles.items():
+                    if round_num in t1.choices:
+                        id1 = battle['noun1']['id']
+                        id2 = battle['noun2']['id']
+                        winner_id = t1.choices[round_num]
+                        
+                        idx1 = id_to_idx[id1]
+                        idx2 = id_to_idx[id2]
+                        
+                        if str(winner_id) == str(id1):
+                            matrix1[idx2][idx1] = 1
+                            matrix1[idx1][idx2] = 2
+                        else:
+                            matrix1[idx1][idx2] = 1
+                            matrix1[idx2][idx1] = 2
+                
+                # Fill matrix for player 2
+                for round_num, battle in t2.battles.items():
+                    if round_num in t2.choices:
+                        id1 = battle['noun1']['id']
+                        id2 = battle['noun2']['id']
+                        winner_id = t2.choices[round_num]
+                        
+                        idx1 = id_to_idx[id1]
+                        idx2 = id_to_idx[id2]
+                        
+                        if str(winner_id) == str(id1):
+                            matrix2[idx2][idx1] = 1
+                            matrix2[idx1][idx2] = 2
+                        else:
+                            matrix2[idx1][idx2] = 1
+                            matrix2[idx2][idx1] = 2
+                
+                # Calculate correlation
+                flat1 = matrix1.flatten()
+                flat2 = matrix2.flatten()
+                mask = (flat1 != 0) | (flat2 != 0)
+                
+                if np.sum(mask) >= 2:
+                    correlation, _ = pearsonr(flat1[mask], flat2[mask])
+                    tacit_value = (correlation + 1) * 50
+                    tacit_value = max(0, min(100, tacit_value))
+                else:
+                    tacit_value = 50  # Default value
+                
+                tacit_matrix[p1_id][p2_id] = round(tacit_value, 1)
+        
+        # Store matrix in room
+        room.tacit_matrix = tacit_matrix
+        
+        # Create ranking based on average tacit scores
+        player_rankings = []
+        for pid in player_ids:
+            if pid in PLAYERS:
+                scores = [tacit_matrix[pid][other] for other in player_ids if other != pid]
+                avg_score = sum(scores) / len(scores) if scores else 0
+                player_rankings.append({
+                    'playerId': pid,
+                    'nickname': PLAYERS[pid].nickname,
+                    'averageTacit': round(avg_score, 1),
+                    'scores': tacit_matrix[pid]
+                })
+        
+        # Sort by average tacit score
+        player_rankings.sort(key=lambda x: x['averageTacit'], reverse=True)
+        
+        calculation_details = {
+            'method': 'Group Battle Matrix Correlation',
+            'playerCount': n_players,
+            'tacitMatrix': tacit_matrix,
+            'rankings': player_rankings,
+            'explanation': f'计算了{n_players}位玩家之间的默契度矩阵'
+        }
+        
+        # Return the average tacit value for display
+        all_scores = []
+        for i in range(n_players):
+            for j in range(i+1, n_players):
+                all_scores.append(tacit_matrix[player_ids[i]][player_ids[j]])
+        
+        avg_tacit = sum(all_scores) / len(all_scores) if all_scores else 50
+        
+        return avg_tacit, calculation_details
         
     def handle_play_again(self, data):
         room_id = str(data.get('roomId'))

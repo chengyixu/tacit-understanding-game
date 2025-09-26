@@ -229,3 +229,237 @@
   word-break: break-all;
   white-space: pre-wrap;
 }
+
+/* Famous Pairs Comparison Styles */
+.famous-pairs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.famous-pairs-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #3D3833;
+}
+
+.btn-toggle {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+  background: #F3F2F0;
+  border: none;
+  border-radius: 20rpx;
+  color: #6B6660;
+}
+
+.famous-pairs-intro {
+  font-size: 26rpx;
+  color: #8B8680;
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+
+.famous-pair-item {
+  padding: 24rpx;
+  background: #F9F8F6;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.pair-names {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.pair-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #3D3833;
+}
+
+.pair-category {
+  font-size: 24rpx;
+  color: #A8A196;
+  padding: 4rpx 12rpx;
+  background: #EFEDE9;
+  border-radius: 20rpx;
+}
+
+.pair-description {
+  font-size: 24rpx;
+  color: #8B8680;
+  margin-bottom: 16rpx;
+  font-style: italic;
+}
+
+.pair-score-comparison {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.pair-score {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #6B6660;
+}
+
+.comparison-badge {
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.badge-higher {
+  background: #FFE5E5;
+  color: #FF6B6B;
+}
+
+.badge-lower {
+  background: #E5F5E5;
+  color: #4CAF50;
+}
+
+.badge-equal {
+  background: #FFF5E5;
+  color: #FFA726;
+}
+
+.score-bar-container {
+  position: relative;
+  height: 60rpx;
+}
+
+.score-bar-bg {
+  position: absolute;
+  top: 20rpx;
+  left: 0;
+  right: 0;
+  height: 20rpx;
+  background: #EFEDE9;
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #FFB6C1, #FF69B4);
+  border-radius: 10rpx;
+  transition: width 0.5s ease;
+}
+
+.your-score-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.your-score-marker::before {
+  content: '▼';
+  color: #FF1493;
+  font-size: 20rpx;
+}
+
+.marker-text {
+  font-size: 22rpx;
+  color: #FF1493;
+  font-weight: 500;
+  margin-top: -4rpx;
+}
+
+.famous-pairs-summary {
+  text-align: center;
+  font-size: 26rpx;
+  color: #8B8680;
+  padding: 20rpx;
+}
+
+/* Group Mode Styles */
+.group-tacit-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #3D3833;
+  text-align: center;
+  margin: 40rpx 0 20rpx;
+}
+
+.pairwise-scores {
+  background: #F9F8F6;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin: 20rpx 0;
+}
+
+.score-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #E8E5E0;
+}
+
+.score-item:last-child {
+  border-bottom: none;
+}
+
+.score-rank {
+  font-size: 36rpx;
+  font-weight: 300;
+  color: #A8A196;
+  width: 60rpx;
+  text-align: center;
+}
+
+.score-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 20rpx;
+}
+
+.score-player {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #3D3833;
+}
+
+.score-value {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #6B6660;
+}
+
+.score-level {
+  font-size: 24rpx;
+  color: #A8A196;
+  padding: 6rpx 12rpx;
+  background: #EFEDE9;
+  border-radius: 20rpx;
+}
+
+.best-match-message {
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #3D3833;
+  padding: 30rpx;
+  background: linear-gradient(135deg, #FFE5E5, #FFF5E5);
+  border-radius: 16rpx;
+  margin-top: 20rpx;
+}.ai-caption {
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(184, 177, 166, 0.6);
+  letter-spacing: 1rpx;
+}

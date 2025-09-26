@@ -30,7 +30,7 @@ Page({
     this.setData({ isJoining: true });
     
     app.sendMessage({
-      action: 'join_room',
+      action: 'joinRoom',
       roomId: this.data.roomId,
       playerInfo: app.globalData.playerInfo
     });
@@ -62,7 +62,7 @@ Page({
   handleMessage(data) {
     console.log('Join page received:', data);
     
-    if (data.action === 'joined_room') {
+    if (data.action === 'joinedRoom') {
       this.setData({ isJoining: false });
       wx.redirectTo({
         url: '/pages/waiting/waiting'

@@ -2,6 +2,33 @@
   <view class="title">创建房间</view>
   
   <view class="card">
+    <view class="subtitle">游戏模式</view>
+    <view class="mode-selector">
+      <view class="mode-option {{!groupMode ? 'active' : ''}}" bindtap="toggleGroupMode" data-mode="false">
+        <text class="mode-icon">👥</text>
+        <text class="mode-name">双人对战</text>
+        <text class="mode-desc">经典1v1默契测试</text>
+      </view>
+      <view class="mode-option {{groupMode ? 'active' : ''}}" bindtap="toggleGroupMode" data-mode="true">
+        <text class="mode-icon">👫👬👭</text>
+        <text class="mode-name">多人派对</text>
+        <text class="mode-desc">3-6人群体默契大比拼</text>
+      </view>
+    </view>
+    
+    <view wx:if="{{groupMode}}" class="player-count-selector">
+      <view class="subtitle">选择人数</view>
+      <view class="count-options">
+        <view wx:for="{{[3,4,5,6]}}" wx:key="*this" 
+              class="count-option {{maxPlayers == item ? 'selected' : ''}}"
+              bindtap="selectPlayerCount" data-count="{{item}}">
+          {{item}}人
+        </view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="card">
     <view class="subtitle">房间号</view>
     <view class="room-id-display">
       <text class="room-id">{{roomId || '生成中...'}}</text>
@@ -15,9 +42,11 @@
     <view class="subtitle">邀请好友</view>
     <view class="invite-text">
       分享房间号给朋友，让他们通过"加入房间"输入房间号即可加入游戏
+      <text wx:if="{{groupMode}}" class="group-note">（需要{{maxPlayers}}位玩家才能开始）</text>
     </view>
   </view>
 
   <button class="btn" bindtap="enterWaitingRoom">进入等待室</button>
   <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
+  <view class="ai-caption">AI生成、人工智能生成</view>
 </view>

@@ -9,6 +9,7 @@
   "setting": {
     "urlCheck": false,
     "es6": true,
+    "https": false,
     "enhance": true,
     "postcss": true,
     "preloadBackgroundData": false,

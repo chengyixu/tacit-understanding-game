@@ -8,20 +8,43 @@
   </view>
 
   <view class="card">
+    <view wx:if="{{groupMode}}" class="group-header">
+      <text class="group-title">多人派对模式</text>
+      <text class="player-count">{{currentPlayerCount}}/{{maxPlayers}} 玩家</text>
+    </view>
+    
     <view class="player-list">
-      <view class="player-item">
-        <view class="player-name">{{playerInfo.nickname}}</view>
-        <view class="player-status">{{isHost ? '房主' : '玩家'}}</view>
-      </view>
+      <!-- Group mode: Show all players -->
+      <block wx:if="{{groupMode}}">
+        <view wx:for="{{allPlayers}}" wx:key="playerId" class="player-item">
+          <view class="player-name">{{item.nickname}}</view>
+          <view class="player-status">
+            {{item.playerId === playerInfo.playerId ? (isHost ? '房主' : '你') : '玩家'}}
+          </view>
+        </view>
+        
+        <!-- Show empty slots -->
+        <view wx:for="{{maxPlayers - currentPlayerCount}}" wx:key="*this" class="player-item waiting">
+          <view class="player-name">等待玩家加入...</view>
+        </view>
+      </block>
       
-      <view class="player-item" wx:if="{{opponentInfo}}">
-        <view class="player-name">{{opponentInfo.nickname}}</view>
-        <view class="player-status">{{isHost ? '玩家' : '房主'}}</view>
-      </view>
-      
-      <view class="player-item waiting" wx:else>
-        <view class="player-name">等待玩家加入...</view>
-      </view>
+      <!-- 2-player mode -->
+      <block wx:else>
+        <view class="player-item">
+          <view class="player-name">{{playerInfo.nickname}}</view>
+          <view class="player-status">{{isHost ? '房主' : '玩家'}}</view>
+        </view>
+        
+        <view class="player-item" wx:if="{{opponentInfo}}">
+          <view class="player-name">{{opponentInfo.nickname}}</view>
+          <view class="player-status">{{isHost ? '玩家' : '房主'}}</view>
+        </view>
+        
+        <view class="player-item waiting" wx:else>
+          <view class="player-name">等待玩家加入...</view>
+        </view>
+      </block>
     </view>
   </view>
 
@@ -30,16 +53,22 @@
     <view class="countdown-number">{{countdown}}</view>
   </view>
 
-  <button wx:if="{{isHost && opponentInfo && !isReady}}" 
+  <button wx:if="{{isHost && !isReady && ((groupMode && currentPlayerCount >= maxPlayers) || (!groupMode && opponentInfo))}}" 
           class="btn" 
           bindtap="startGame">
     开始游戏
   </button>
   
-  <view wx:elif="{{!isHost && opponentInfo && !isReady}}" 
+  <view wx:elif="{{!isHost && !isReady && ((groupMode && currentPlayerCount >= maxPlayers) || (!groupMode && opponentInfo))}}" 
         class="waiting-message">
     等待房主开始游戏...
   </view>
+  
+  <view wx:elif="{{groupMode && currentPlayerCount < maxPlayers && !isReady}}" 
+        class="waiting-message">
+    等待更多玩家加入 ({{currentPlayerCount}}/{{maxPlayers}})
+  </view>
 
   <button class="btn btn-secondary" bindtap="leaveRoom">离开房间</button>
+  <view class="ai-caption">AI生成、人工智能生成</view>
 </view>

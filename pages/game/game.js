@@ -28,11 +28,8 @@ Page({
 
     app.setMessageCallback(this.handleMessage.bind(this));
     
-    app.sendMessage({
-      action: 'get_battle',
-      roomId: app.globalData.roomId,
-      playerId: app.globalData.playerInfo.playerId
-    });
+    // Game will start with gameStarted message from server
+    // No need to request battle data
   },
 
   onShow() {
@@ -52,17 +49,20 @@ Page({
     }
 
     switch(data.action) {
-      case 'battle_data':
-        this.handleBattleData(data);
+      case 'gameStarted':
+        this.handleGameStarted(data);
         break;
-      case 'opponent_selected':
-        this.handleOpponentSelected(data);
+      case 'nextBattle':
+        this.handleNextBattle(data);
         break;
-      case 'battle_result':
-        this.handleBattleResult(data);
+      case 'gameProgress':
+        this.handleGameProgress(data);
         break;
-      case 'game_ended':
-        this.handleGameEnded(data);
+      case 'tournamentComplete':
+        this.handleTournamentComplete(data);
+        break;
+      case 'gameComplete':
+        this.handleGameComplete(data);
         break;
       case 'error':
         this.handleError(data);
@@ -70,62 +70,59 @@ Page({
     }
   },
 
-  handleBattleData(data) {
-    const progress = ((data.round - 1) / this.data.totalRounds) * 100;
+  handleGameStarted(data) {
+    console.log('Game started with data:', data);
+    const progress = 0;
     
     this.setData({
-      currentBattle: data.battle,
+      currentBattle: data.currentBattle,
+      totalRounds: data.totalRounds || 9,
       roundProgress: progress,
       selectedNounId: null,
       waitingForOpponent: false,
       isProcessing: false
     });
   },
-
-  handleOpponentSelected(data) {
-    this.setData({
-      waitingForOpponent: true
-    });
-    
-    wx.showToast({
-      title: '对手已选择',
-      icon: 'none',
-      duration: 1000
-    });
-  },
-
-  handleBattleResult(data) {
-    wx.hideToast();
-    
-    const history = this.data.battleHistory;
-    history.push({
-      round: data.round,
-      winner: data.winnerNoun,
-      loser: data.loserNoun
-    });
+  
+  handleNextBattle(data) {
+    const progress = ((data.currentRound - 1) / this.data.totalRounds) * 100;
     
     this.setData({
-      battleHistory: history,
-      currentBattle: null,
+      currentBattle: data.currentBattle,
+      roundProgress: progress,
       selectedNounId: null,
       waitingForOpponent: false,
       isProcessing: false
     });
-
-    wx.showToast({
-      title: `${data.winnerNoun.name} 胜出！`,
-      icon: 'none',
-      duration: 1500
-    });
-
-    setTimeout(() => {
-      if (data.hasNext) {
-        this.requestNextBattle();
-      }
-    }, 1500);
+  },
+  
+  handleGameProgress(data) {
+    console.log('Game progress update:', data);
+    // Handle progress updates from other players
+    if (data.allCompleted) {
+      wx.redirectTo({
+        url: '/pages/result/result'
+      });
+    }
   },
 
-  handleGameEnded(data) {
+
+  handleTournamentComplete(data) {
+    console.log('Tournament complete:', data);
+    // Player's tournament is complete, waiting for others
+    if (data.waitingForOthers) {
+      wx.showToast({
+        title: '等待其他玩家完成...',
+        icon: 'loading',
+        duration: 60000
+      });
+    }
+  },
+
+  handleGameComplete(data) {
+    console.log('Game complete:', data);
+    // Store results in app global data for result page
+    app.globalData.gameResults = data;
     wx.redirectTo({
       url: '/pages/result/result'
     });
@@ -155,7 +152,7 @@ Page({
     });
 
     app.sendMessage({
-      action: 'select_noun',
+      action: 'submitChoice',
       roomId: this.data.roomId,
       playerId: this.data.playerInfo.playerId,
       round: this.data.currentBattle.round,
@@ -170,11 +167,5 @@ Page({
   },
 
 
-  requestNextBattle() {
-    app.sendMessage({
-      action: 'get_battle',
-      roomId: this.data.roomId,
-      playerId: this.data.playerInfo.playerId
-    });
-  }
+  // Next battle is automatically sent by server after submitChoice
 });
