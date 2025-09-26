@@ -6,6 +6,13 @@
       <view class="dot {{connectionStatus === '已连接' ? 'dot-connected' : 'dot-disconnected'}}"></view>
       <text>{{connectionStatus}}</text>
     </view>
+    <button size="mini" bindtap="manualConnect" style="margin-left: 20rpx;">手动连接</button>
+  </view>
+  
+  <!-- Debug info -->
+  <view style="background: #f0f0f0; padding: 10rpx; margin: 10rpx;">
+    <button size="mini" bindtap="clearDebug" style="margin-bottom: 10rpx;">清除调试</button>
+    <view style="font-size: 20rpx; max-height: 200rpx; overflow-y: auto; white-space: pre-wrap;">{{debugInfo}}</view>
   </view>
 
   <view class="card">
@@ -34,4 +41,5 @@
   <button class="btn btn-special" bindtap="enterChallenge">专项挑战</button>
   
   <view class="version-info">v2.5.0 - 完整功能版</view>
+  <view class="ai-caption">AI生成、人工智能生成</view>
 </view>

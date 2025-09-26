@@ -36,12 +36,21 @@ This is a WeChat Mini Program called "默契小游戏" (Tacit Understanding Game
 
 ### WebSocket State Management Pattern
 The app uses a centralized WebSocket management pattern through `app.js`:
-- Single persistent connection to `wss://www.aiconnector.cn:3000/ws`
-- Backend server hosted at 43.137.34.201 (Tencent Cloud Light Application Server)
+- Single persistent connection to `wss://www.panor.tech:3001/ws`
+- Backend server hosted at 47.117.176.214 (Alibaba Cloud Server) with panor.tech
 - Global state shared across pages via `getApp().globalData`
 - Message callbacks registered per page using `app.setMessageCallback()`
 - Auto-reconnection with 3-second retry on disconnect
 - Race condition prevention using `isProcessing` flag in game logic
+
+Backend server connection:
+username: root
+ip: 47.117.176.214
+password: 0212Connect!
+port: 3001
+path: /moqiyouxi_backend/
+
+
 
 ### Page Flow & State Transitions
 ```
@@ -120,7 +129,7 @@ onLoad() {
 
 ## Challenge Mode Categories
 
-10 predefined categories with exactly 10 words each:
+19 predefined categories with 40 words each:
 1. 科技公司 (Tech Companies)
 2. 餐饮品牌 (Restaurant Brands)
 3. 歌手 (Singers)
@@ -131,9 +140,18 @@ onLoad() {
 8. 游戏 (Games)
 9. 动漫人物 (Anime Characters)
 10. 城市 (Cities)
+11. 历史CP (Historical Pairs)
+12. 美食 (Food)
+13. 汽车品牌 (Car Brands)
+14. 电影 (Movies)
+15. 运动项目 (Sports)
+16. 学科 (Subjects)
+17. 节日 (Holidays)
+18. 颜色 (Colors)
+19. 动物 (Animals)
 
 Words are stored in:
-- **Production**: Backend server at `/moqiyouxi_backend/word_bank.json` (on server)
+- **Production**: Backend server at `/moqiyouxi_backend/word_bank.json` (on server 47.117.176.214)
 
 ## Critical Files
 
@@ -145,8 +163,8 @@ Words are stored in:
 - `utils/util.js`: `generateRandomRoomId()`, `getTacitLevel()`
 
 **Backend (Deployed on Server)**:
-- `/moqiyouxi_backend/server0405.py`: WebSocket server (deployed at 43.137.34.201)
-- `/moqiyouxi_backend/word_bank.json`: Production word database with 100 words in 10 categories
+- `/moqiyouxi_backend/server0405.py`: WebSocket server (deployed at 47.117.176.214:3001)
+- `/moqiyouxi_backend/word_bank.json`: Production word database with 760 words in 19 categories (40 words per category)
 - Local `server0405.py`: Reference copy for development
 
 ## 默契值 (Tacit Understanding Value) Calculation

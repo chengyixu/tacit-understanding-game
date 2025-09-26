@@ -34,11 +34,21 @@
 
 .version-info {
   position: fixed;
-  bottom: 30rpx;
+  bottom: 50rpx;
   left: 50%;
   transform: translateX(-50%);
   font-size: 22rpx;
   color: #B8B1A6;
   opacity: 0.8;
+  letter-spacing: 1rpx;
+}
+
+.ai-caption {
+  position: fixed;
+  bottom: 20rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20rpx;
+  color: rgba(184, 177, 166, 0.6);
   letter-spacing: 1rpx;
 }

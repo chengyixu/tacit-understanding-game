@@ -1,0 +1,17 @@
+<view style="padding: 20rpx;">
+  <view style="font-size: 32rpx; font-weight: bold; margin-bottom: 20rpx;">WebSocket Connection Test</view>
+  
+  <button bindtap="test1" type="primary" style="margin: 10rpx;">Test: wss://www.panor.tech:3001/ws</button>
+  <button bindtap="test2" type="warn" style="margin: 10rpx;">Test: wss://panor.tech:3001/ws</button>
+  <button bindtap="test3" type="default" style="margin: 10rpx;">Test: wss://47.117.176.214:3001/ws</button>
+  
+  <view style="margin-top: 20rpx; padding: 20rpx; background: #f0f0f0;">
+    <text>Result: {{result}}</text>
+  </view>
+  
+  <view style="margin-top: 20rpx; padding: 20rpx; background: #fff; border: 1px solid #ddd; max-height: 400rpx; overflow-y: auto;">
+    <text style="white-space: pre-wrap;">{{log}}</text>
+  </view>
+  
+  <button bindtap="clearLog" size="mini">Clear Log</button>
+</view>

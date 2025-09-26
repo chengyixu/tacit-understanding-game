@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/test/test",
     "pages/create/create",
     "pages/join/join",
     "pages/waiting/waiting",
