@@ -301,8 +301,18 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             }))
             return
             
-        # Generate unique room ID
-        room_id = self.generate_room_id()
+        # Use provided room ID or generate a new one
+        room_id = data.get('roomId')
+        if not room_id:
+            room_id = self.generate_room_id()
+        
+        # Check if room already exists
+        if room_id in ROOMS:
+            self.write_message(json.dumps({
+                'action': 'error',
+                'message': 'Room already exists'
+            }))
+            return
         
         # Create room
         room = Room(room_id, self.player_id)

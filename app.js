@@ -84,7 +84,16 @@ App({
     wx.onSocketMessage((res) => {
       try {
         const data = JSON.parse(res.data);
-        console.log('收到消息:', data);
+        console.log('App.js 收到消息:', data);
+        
+        // Show debug toast for all messages
+        if (data.action !== 'pong') {
+          wx.showToast({
+            title: `WS: ${data.action}`,
+            icon: 'none',
+            duration: 1000
+          });
+        }
         
         if (data.action === 'pong') {
           // Heartbeat response
@@ -103,7 +112,10 @@ App({
         }
         
         if (this.globalData.messageCallback) {
+          console.log('Calling message callback with:', data.action);
           this.globalData.messageCallback(data);
+        } else {
+          console.log('No message callback set for action:', data.action);
         }
       } catch (error) {
         console.error('解析消息失败:', error);

@@ -7,10 +7,12 @@ Page({
   },
 
   onLoad() {
+    console.log('Join page onLoad - setting message callback');
     app.setMessageCallback(this.handleMessage.bind(this));
   },
 
   onShow() {
+    console.log('Join page onShow - resetting message callback');
     app.setMessageCallback(this.handleMessage.bind(this));
   },
 
@@ -29,11 +31,21 @@ Page({
     
     this.setData({ isJoining: true });
     
-    app.sendMessage({
+    const joinData = {
       action: 'joinRoom',
       roomId: this.data.roomId,
       playerInfo: app.globalData.playerInfo
+    };
+    
+    console.log('Sending join request:', joinData);
+    wx.showToast({
+      title: `加入房间 ${this.data.roomId}...`,
+      icon: 'loading',
+      duration: 10000
     });
+    
+    const sent = app.sendMessage(joinData);
+    console.log('Message sent result:', sent);
     
     app.globalData.roomId = this.data.roomId;
     app.globalData.isHost = false;
@@ -62,17 +74,28 @@ Page({
   handleMessage(data) {
     console.log('Join page received:', data);
     
+    // Add visible debug info
+    wx.showToast({
+      title: `收到: ${data.action}`,
+      icon: 'none',
+      duration: 2000
+    });
+    
     if (data.action === 'joinedRoom') {
+      console.log('Received joinedRoom, redirecting...');
       this.setData({ isJoining: false });
       wx.redirectTo({
         url: '/pages/waiting/waiting'
       });
     } else if (data.action === 'error') {
+      console.log('Received error:', data.message);
       this.setData({ isJoining: false });
       wx.showToast({
         title: data.message || '加入失败',
         icon: 'none'
       });
+    } else {
+      console.log('Unexpected action:', data.action);
     }
   },
 
