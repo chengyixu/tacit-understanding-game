@@ -205,3 +205,22 @@ Utility function (`utils/util.js:getTacitLevel()`):
 **WeChat Library**: 2.24.6
 **URL Check**: Disabled for development
 **ES6**: Enabled with compilation
+
+
+YOU CAN ALWAYS SSH into the backend to make edits or monitors!!!!
+
+Host panor panor-47-117-176-214
+  HostName 47.117.176.214
+  User root
+  Port 22
+  ProxyCommand socat - SOCKS5:127.0.0.1:%h:%p,socksport=7890
+  # Forward local Clash mixed proxy to server (server can use localhost:7890 as SOCKS5/HTTP proxy)
+  RemoteForward 7890 127.0.0.1:7890
+  ServerAliveInterval 15
+  ServerAliveCountMax 3
+  TCPKeepAlive yes
+  IPQoS none
+  Compression yes
+  ControlMaster auto
+  ControlPath ~/.ssh/cm-%r@%h:%p
+  ControlPersist 10m

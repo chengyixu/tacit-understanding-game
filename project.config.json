@@ -5,6 +5,10 @@
       {
         "type": "folder",
         "value": "__pycache__"
+      },
+      {
+        "type": "folder",
+        "value": ".git"
       }
     ],
     "include": []

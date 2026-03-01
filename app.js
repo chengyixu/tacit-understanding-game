@@ -7,6 +7,7 @@ App({
     heartbeatTimer: null,
     reconnectAttempts: 0,
     maxReconnectAttempts: 10,
+    connectionLogs: [],
     messageCallback: null,
     roomId: null,
     playerInfo: null,
@@ -44,6 +45,7 @@ App({
   _setupSocketHandlers() {
     wx.onSocketOpen(() => {
       console.log('WebSocket连接已打开');
+      this.addConnectionLog('INFO', 'WebSocket连接已打开');
       this.globalData.wsConnected = true;
       this.globalData.wsConnecting = false;
       this.globalData.reconnectAttempts = 0;
@@ -107,6 +109,7 @@ App({
 
     wx.onSocketError((err) => {
       console.error('WebSocket错误:', err);
+      this.addConnectionLog('ERROR', 'WebSocket连接错误', err);
       this.globalData.wsConnected = false;
       this.globalData.wsConnecting = false;
       this.globalData.playerRegistered = false;
@@ -114,8 +117,9 @@ App({
       this.scheduleReconnect();
     });
 
-    wx.onSocketClose(() => {
+    wx.onSocketClose((res) => {
       console.log('WebSocket连接关闭');
+      this.addConnectionLog('WARN', 'WebSocket连接关闭', { code: res.code, reason: res.reason });
       this.globalData.wsConnected = false;
       this.globalData.wsConnecting = false;
       this.globalData.playerRegistered = false;
@@ -131,14 +135,17 @@ App({
 
     this.globalData.wsConnecting = true;
     const wsUrl = 'wss://www.panor.tech/moqi/ws';
+    this.addConnectionLog('INFO', '发起连接', { url: wsUrl, attempt: this.globalData.reconnectAttempts + 1 });
 
     wx.connectSocket({
       url: wsUrl,
       success: () => {
         console.log('WebSocket连接请求已发送');
+        this.addConnectionLog('INFO', '连接请求已发送');
       },
       fail: (err) => {
         console.error('WebSocket连接请求失败:', err);
+        this.addConnectionLog('ERROR', '连接请求失败', err);
         this.globalData.wsConnecting = false;
         this.scheduleReconnect();
       }
@@ -164,6 +171,7 @@ App({
   scheduleReconnect() {
     if (this.globalData.reconnectAttempts >= this.globalData.maxReconnectAttempts) {
       console.error('达到最大重连次数，停止重连');
+      this.addConnectionLog('ERROR', '达到最大重连次数，停止重连', { attempts: this.globalData.reconnectAttempts });
       wx.showToast({
         title: '连接失败，请检查网络',
         icon: 'none'
@@ -211,6 +219,19 @@ App({
       }
     });
     return true;
+  },
+
+  addConnectionLog(level, msg, detail) {
+    const entry = {
+      time: new Date().toLocaleTimeString(),
+      level,
+      msg,
+      detail: detail ? JSON.stringify(detail) : ''
+    };
+    this.globalData.connectionLogs.push(entry);
+    if (this.globalData.connectionLogs.length > 50) {
+      this.globalData.connectionLogs.shift();
+    }
   },
 
   setMessageCallback(callback) {

@@ -3,7 +3,9 @@ const app = getApp();
 Page({
   data: {
     nickname: '',
-    connectionStatus: '未连接'
+    connectionStatus: '未连接',
+    showDebugLog: false,
+    debugLogText: ''
   },
 
   onLoad() {
@@ -58,6 +60,7 @@ Page({
                 this.setData({ connectionStatus: '已连接' });
               } else {
                 this.setData({ connectionStatus: '连接失败' });
+                this.showDebugPanel();
               }
             }, 3000);
           } else if (!app.globalData.playerRegistered) {
@@ -66,6 +69,7 @@ Page({
               data: JSON.stringify({ action: 'register' }),
               fail: () => {
                 this.setData({ connectionStatus: '连接失败' });
+                this.showDebugPanel();
               }
             });
             setTimeout(() => {
@@ -73,6 +77,7 @@ Page({
                 this.setData({ connectionStatus: '已连接' });
               } else {
                 this.setData({ connectionStatus: '连接失败' });
+                this.showDebugPanel();
               }
             }, 1000);
           }
@@ -162,6 +167,45 @@ Page({
     wx.navigateTo({
       url: '/pages/theme/theme'
     });
+  },
+
+  showDebugPanel() {
+    const logs = app.globalData.connectionLogs || [];
+    const logText = logs.map(l => `[${l.time}] ${l.level}: ${l.msg}${l.detail ? ' ' + l.detail : ''}`).join('\n');
+    const sysInfo = wx.getSystemInfoSync();
+    const baseInfo = `URL: wss://www.panor.tech/moqi/ws\n平台: ${sysInfo.platform}\n系统: ${sysInfo.system}\n微信版本: ${sysInfo.version}\n基础库: ${sysInfo.SDKVersion}`;
+
+    wx.getNetworkType({
+      success: (res) => {
+        const info = `${baseInfo}\n网络: ${res.networkType}\n\n--- 连接日志 ---\n${logText || '(无日志)'}`;
+        this.setData({ showDebugLog: true, debugLogText: info });
+      },
+      fail: () => {
+        const info = `${baseInfo}\n网络: unknown\n\n--- 连接日志 ---\n${logText || '(无日志)'}`;
+        this.setData({ showDebugLog: true, debugLogText: info });
+      }
+    });
+  },
+
+  copyDebugLog() {
+    wx.setClipboardData({
+      data: this.data.debugLogText,
+      success: () => {
+        wx.showToast({ title: '已复制', icon: 'success' });
+      }
+    });
+  },
+
+  hideDebugLog() {
+    this.setData({ showDebugLog: false });
+  },
+
+  retryConnection() {
+    this.setData({ showDebugLog: false });
+    app.globalData.reconnectAttempts = 0;
+    app.globalData.connectionLogs = [];
+    app.connectWebSocket();
+    this.checkConnection();
   },
 
   validateNickname() {
