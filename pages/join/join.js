@@ -31,10 +31,10 @@ Page({
     
     this.setData({ isJoining: true });
     
+    // Join the room with current player info
     app.sendMessage({
       action: 'joinRoom',
-      roomId: this.data.roomId,
-      playerInfo: app.globalData.playerInfo
+      roomId: this.data.roomId
     });
     
     app.globalData.roomId = this.data.roomId;

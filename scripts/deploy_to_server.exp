@@ -1,0 +1,74 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+
+# Copy the update script to the server
+spawn scp /Users/chengyixu/WeChatProjects/testchat/update_tacit_simple.py root@47.117.176.214:/moqiyouxi_backend/
+
+expect {
+    "password:" {
+        send "0212Connect!\r"
+        exp_continue
+    }
+    "yes/no" {
+        send "yes\r"
+        exp_continue  
+    }
+    "100%" {
+        # File copied successfully
+    }
+    eof {
+        # Transfer complete
+    }
+}
+
+# Now SSH in and run the script
+spawn ssh root@47.117.176.214
+
+expect {
+    "password:" {
+        send "0212Connect!\r"
+        exp_continue
+    }
+    "yes/no" {
+        send "yes\r"
+        exp_continue
+    }
+    "# " {
+        # We're logged in
+    }
+}
+
+# Navigate to the directory
+send "cd /moqiyouxi_backend\r"
+expect "# "
+
+# Backup the current file
+send "cp server0405.py server0405.py.backup_$(date +%Y%m%d_%H%M%S)\r"
+expect "# "
+
+# Run the update script
+send "python3 update_tacit_simple.py\r"
+expect "Successfully updated"
+expect "# "
+
+# Restart the server
+send "echo 'Stopping old server...'\r"
+expect "# "
+send "pkill -f server0405.py || true\r"
+expect "# "
+send "sleep 2\r"
+expect "# "
+send "echo 'Starting new server...'\r"
+expect "# "
+send "nohup python3 server0405.py > server.log 2>&1 &\r"
+expect "# "
+send "sleep 2\r"
+expect "# "
+send "ps aux | grep server0405 | grep -v grep\r"
+expect "# "
+send "echo 'Server update complete!'\r"
+expect "# "
+
+send "exit\r"
+expect eof

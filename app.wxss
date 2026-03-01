@@ -61,15 +61,16 @@ page {
   color: #FFFFFF;
 }
 
-.btn-special {
-  background: transparent;
-  color: #8B8680;
-  border: 1rpx solid #D4D0CA;
+
+.btn-theme {
+  background: #C5BAAF;
+  color: #FFFFFF;
+  border: none;
 }
 
-.btn-special:active {
-  background: #F7F6F4;
-  color: #8B8680;
+.btn-theme:active {
+  background: #B8ACA0;
+  color: #FFFFFF;
 }
 
 .btn-disabled {

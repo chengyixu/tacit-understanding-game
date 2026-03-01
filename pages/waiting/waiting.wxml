@@ -4,6 +4,7 @@
   <view class="status-bar">
     <view class="room-info">
       <text>房间号: {{roomId}}</text>
+      <text wx:if="{{themeCategory}}" class="theme-info">主题: {{themeCategory.name}}</text>
     </view>
   </view>
 
@@ -70,5 +71,5 @@
   </view>
 
   <button class="btn btn-secondary" bindtap="leaveRoom">离开房间</button>
-  <view class="ai-caption">AI生成、人工智能生成</view>
+  <view class="ai-caption" wx:if="{{testMode}}">AI测试模式已启用，包含人工智能生成内容</view>
 </view>

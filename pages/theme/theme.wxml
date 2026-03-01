@@ -1,0 +1,18 @@
+<view class="container">
+  <view class="title">选择主题</view>
+  
+  <view class="category-grid">
+    <view 
+      class="category-item {{selectedCategory && selectedCategory.id === item.id ? 'category-selected' : ''}}" 
+      wx:for="{{categories}}" 
+      wx:key="id"
+      bindtap="selectCategory"
+      data-category="{{item}}"
+    >
+      <view class="category-icon">{{item.icon}}</view>
+      <view class="category-name">{{item.name}}</view>
+    </view>
+  </view>
+
+  <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
+</view>

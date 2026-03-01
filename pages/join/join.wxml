@@ -22,5 +22,5 @@
   </button>
   
   <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
-  <view class="ai-caption">AI生成、人工智能生成</view>
+  <view class="ai-caption">本游戏包含AI测试功能，AI选择结果由人工智能生成</view>
 </view>

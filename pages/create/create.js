@@ -5,12 +5,12 @@ Page({
     roomId: '',
     isCreating: false,
     groupMode: false,
-    maxPlayers: 3
+    maxPlayers: 2  // Changed default to 2 for 2-player mode
   },
 
   onLoad() {
     app.setMessageCallback(this.handleMessage.bind(this));
-    // Create room with default settings (2-player mode)
+    // Create room immediately so room number shows
     this.createRoom();
   },
 
@@ -29,16 +29,16 @@ Page({
       maxPlayers: mode ? 3 : 2
     });
     
-    // Re-create room with new settings
-    this.createRoom();
+    // Don't create room yet - wait for user to click enter waiting room
+    // this.createRoom();
   },
   
   selectPlayerCount(e) {
     const count = parseInt(e.currentTarget.dataset.count);
     this.setData({ maxPlayers: count });
     
-    // Re-create room with new player count
-    this.createRoom();
+    // Don't create room yet - wait for user to click enter waiting room
+    // this.createRoom();
   },
 
   createRoom() {
@@ -48,52 +48,26 @@ Page({
     
     const roomId = this.data.roomId || this.generateRoomId();
     
-    app.sendMessage({
+    console.log('[CREATE] app.globalData:', app.globalData);
+    
+    const message = {
       action: 'createRoom',
       roomId: roomId,
       playerInfo: app.globalData.playerInfo,
-      challengeMode: app.globalData.challengeMode || false,
+      challengeMode: app.globalData.themeMode || false,  // Use themeMode to indicate category-specific mode
       challengeCategory: app.globalData.challengeCategory || null,
-      testMode: app.globalData.testMode || false,  // Pass test mode flag
       groupMode: this.data.groupMode,
       maxPlayers: this.data.maxPlayers
-    });
+    };
+    
+    console.log('[CREATE] Sending message:', message);
+    app.sendMessage(message);
 
     this.setData({ roomId: roomId });
     app.globalData.roomId = roomId;
     app.globalData.isHost = true;
     app.globalData.groupMode = this.data.groupMode;
     app.globalData.maxPlayers = this.data.maxPlayers;
-    
-    // If test mode is enabled, create virtual AI player
-    if (app.globalData.testMode) {
-      this.createVirtualAIPlayer(roomId);
-    }
-  },
-  
-  createVirtualAIPlayer(roomId) {
-    // Simulate AI player joining after a short delay
-    setTimeout(() => {
-      console.log('Creating virtual AI player for room:', roomId);
-      
-      // Create AI player info
-      const aiPlayer = {
-        playerId: 'ai-' + Date.now(),
-        nickname: 'AI对手',
-        isAI: true
-      };
-      
-      // Store AI player info
-      app.globalData.aiPlayer = aiPlayer;
-      
-      // Simulate AI joining the room
-      app.sendMessage({
-        action: 'joinRoom',
-        roomId: roomId,
-        playerInfo: aiPlayer,
-        isAI: true
-      });
-    }, 1000);
   },
 
   generateRoomId() {
@@ -137,6 +111,7 @@ Page({
       // Wait a bit for room creation
       setTimeout(() => {
         if (this.data.roomId) {
+          app.globalData.fromCreatePage = true;  // Mark that we're coming from create page
           wx.redirectTo({
             url: '/pages/waiting/waiting'
           });
@@ -150,6 +125,7 @@ Page({
       return;
     }
     
+    app.globalData.fromCreatePage = true;  // Mark that we're coming from create page
     wx.redirectTo({
       url: '/pages/waiting/waiting'
     });

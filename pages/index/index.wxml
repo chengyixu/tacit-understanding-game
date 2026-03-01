@@ -6,13 +6,6 @@
       <view class="dot {{connectionStatus === '已连接' ? 'dot-connected' : 'dot-disconnected'}}"></view>
       <text>{{connectionStatus}}</text>
     </view>
-    <button size="mini" bindtap="manualConnect" style="margin-left: 20rpx;">手动连接</button>
-  </view>
-  
-  <!-- Debug info -->
-  <view style="background: #f0f0f0; padding: 10rpx; margin: 10rpx;">
-    <button size="mini" bindtap="clearDebug" style="margin-bottom: 10rpx;">清除调试</button>
-    <view style="font-size: 20rpx; max-height: 200rpx; overflow-y: auto; white-space: pre-wrap;">{{debugInfo}}</view>
   </view>
 
   <view class="card">
@@ -26,20 +19,11 @@
         bindinput="onNicknameInput"
       />
     </view>
-    
-    <view class="switch-group">
-      <view class="switch-label">
-        <text class="switch-title">🤖 AI测试模式</text>
-        <text class="switch-desc">启用后将与AI对战，无需等待真人玩家</text>
-      </view>
-      <switch checked="{{testMode}}" bindchange="toggleTestMode" color="#667eea" />
-    </view>
   </view>
 
   <button class="btn" bindtap="createRoom">创建房间</button>
   <button class="btn btn-secondary" bindtap="joinRoom">加入房间</button>
-  <button class="btn btn-special" bindtap="enterChallenge">专项挑战</button>
+  <button class="btn btn-theme" bindtap="enterThemeSelection">自选主题</button>
   
   <view class="version-info">v2.5.0 - 完整功能版</view>
-  <view class="ai-caption">AI生成、人工智能生成</view>
 </view>

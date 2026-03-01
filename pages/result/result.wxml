@@ -63,21 +63,9 @@
       
       <!-- 计算步骤展示 -->
       <view class="calculation-summary">
-        <view wx:if="{{calculationDetails}}">
-          <view class="calc-method">{{calculationDetails.method || 'Matrix Correlation'}}</view>
-          <view class="calc-formula">{{calculationDetails.calculation || '计算中...'}}</view>
-          <view wx:if="{{calculationDetails.correlation}}" class="calc-stats">
-            <text>相关系数: {{calculationDetails.correlation}}</text>
-            <text wx:if="{{calculationDetails.p_value}}"> | p值: {{calculationDetails.p_value}}</text>
-          </view>
-          <view wx:if="{{calculationDetails.matrix_size}}" class="calc-info">
-            <text>矩阵大小: {{calculationDetails.matrix_size}}</text>
-            <text wx:if="{{calculationDetails.data_points}}"> | 数据点: {{calculationDetails.data_points}}</text>
-          </view>
-          <view wx:if="{{calculationDetails.explanation}}" class="calc-explanation">{{calculationDetails.explanation}}</view>
-        </view>
-        <view wx:else class="calc-method">
-          基于选择偏好矩阵的皮尔逊相关性分析
+        <view wx:if="{{calculationDetails && calculationDetails.explanation}}" class="calc-explanation">{{calculationDetails.explanation}}</view>
+        <view wx:else class="calc-explanation">
+          默契值由后台根据双方选择偏好自动计算
         </view>
       </view>
     </view>
@@ -122,14 +110,14 @@
   <!-- Famous Pairs Comparison -->
   <view class="card">
     <view class="famous-pairs-header">
-      <view class="famous-pairs-title">📊 历史CP对比</view>
+      <view class="famous-pairs-title">📊 明星CP对比</view>
       <button class="btn-toggle" bindtap="toggleFamousPairs">
         {{showFamousPairs ? '收起' : '展开'}}
       </button>
     </view>
     
     <view wx:if="{{showFamousPairs}}" class="famous-pairs-list">
-      <view class="famous-pairs-intro">看看你们和历史上的著名CP相比如何：</view>
+      <view class="famous-pairs-intro">看看你们和当红明星CP相比如何：</view>
       <view wx:for="{{famousPairs}}" wx:key="index" class="famous-pair-item">
         <view class="pair-names">
           <text class="pair-name">{{item.name1}} & {{item.name2}}</text>
@@ -161,23 +149,8 @@
   <button class="btn" bindtap="playAgain">再来一局</button>
   <button class="btn btn-special" bindtap="shareResult">生成证书并分享</button>
   <button class="btn btn-secondary" bindtap="backToHome">返回首页</button>
-  <button class="btn btn-debug" bindtap="toggleDebug">{{showDebug ? '隐藏' : '显示'}}调试日志</button>
   
   <!-- Hidden canvas for certificate generation -->
   <canvas canvas-id="certificateCanvas" style="position: fixed; top: -9999px; width: 375px; height: 500px;"></canvas>
-  
-  <!-- Debug Log Panel -->
-  <view wx:if="{{showDebug}}" class="debug-panel">
-    <view class="debug-title">🔍 调试日志</view>
-    <scroll-view scroll-y class="debug-scroll">
-      <view wx:for="{{debugLog}}" wx:key="index" class="debug-entry">
-        <text class="debug-time">[{{item.time}}]</text>
-        <text class="debug-message">{{item.message}}</text>
-        <view wx:if="{{item.data}}" class="debug-data">
-          <text>{{item.data}}</text>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
-  <view class="ai-caption">AI生成、人工智能生成</view>
+  <view class="ai-caption" wx:if="{{opponentInfo.nickname === 'AI测试员'}}">对手为AI，结果包含人工智能生成内容</view>
 </view>

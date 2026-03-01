@@ -11,8 +11,6 @@ Page({
     playerInfo: null,
     opponentInfo: null,
     calculationDetails: null,
-    debugLog: [],
-    showDebug: false,
     famousPairs: [],
     showFamousPairs: false,
     groupMode: false,
@@ -25,12 +23,6 @@ Page({
       wx.redirectTo({ url: '/pages/index/index' });
       return;
     }
-
-    this.addDebugLog('Result page onLoad', {
-      roomId: app.globalData.roomId,
-      playerInfo: app.globalData.playerInfo,
-      opponentInfo: app.globalData.opponentInfo
-    });
 
     this.setData({
       playerInfo: app.globalData.playerInfo,
@@ -50,8 +42,6 @@ Page({
         playerId: app.globalData.playerInfo.playerId
       };
       
-      this.addDebugLog('Sending get_result request', requestData);
-      
       app.sendMessage(requestData);
     }
   },
@@ -64,36 +54,11 @@ Page({
     app.clearMessageCallback();
   },
 
-  addDebugLog(message, data = null) {
-    const timestamp = new Date().toLocaleTimeString();
-    const logEntry = {
-      time: timestamp,
-      message: message,
-      data: data ? JSON.stringify(data, null, 2) : null
-    };
-    
-    const currentLog = this.data.debugLog || [];
-    currentLog.push(logEntry);
-    
-    // Keep only last 50 entries
-    if (currentLog.length > 50) {
-      currentLog.shift();
-    }
-    
-    this.setData({
-      debugLog: currentLog
-    });
-    
-    console.log(`[${timestamp}] ${message}`, data);
-  },
-
   handleMessage(data) {
-    this.addDebugLog('Result page received message', data);
 
     // Handle pre-loaded results from game page
     if (!data && app.globalData.gameResults) {
       data = app.globalData.gameResults;
-      this.addDebugLog('Using pre-loaded game results', data);
     }
 
     if (data.action === 'gameComplete') {
@@ -101,12 +66,6 @@ Page({
       
       if (groupMode) {
         // Group mode result
-        this.addDebugLog('Processing group_result', {
-          allPlayers: data.allPlayers,
-          pairwiseTacitScores: data.pairwiseTacitScores,
-          myChampion: data.myChampion
-        });
-        
         this.setData({
           groupMode: true,
           allPlayers: data.allPlayers || [],
@@ -123,30 +82,15 @@ Page({
         // 2-player mode result
         const tacitLevel = this.getTacitLevel(data.tacitValue);
         
-        this.addDebugLog('Processing game_result', {
-          hasChampion: !!data.champion,
-          hasMyChampion: !!data.myChampion,
-          hasOpponentChampion: !!data.opponentChampion,
-          championData: data.champion,
-          myChampionData: data.myChampion,
-          opponentChampionData: data.opponentChampion,
-          tacitValue: data.tacitValue,
-          hasCalculationDetails: !!data.calculationDetails,
-          eliminatedCount: data.eliminatedNouns?.length || 0
-        });
-        
-        // Log each field being set
-        this.addDebugLog('My Champion', data.myChampion);
-        this.addDebugLog('Opponent Champion', data.opponentChampion);
-        this.addDebugLog('Legacy Champion', data.champion);
-        this.addDebugLog('Calculation details', data.calculationDetails);
-        this.addDebugLog('Eliminated nouns', data.eliminatedNouns);
-        
+        const tacitValue = typeof data.tacitValue === 'number'
+          ? Number(data.tacitValue.toFixed(1))
+          : Number(parseFloat(data.tacitValue || 0).toFixed(1));
+
         this.setData({
           champion: data.champion || data.myChampion,  // Fallback for compatibility
           myChampion: data.myChampion || data.champion,
           opponentChampion: data.opponentChampion,
-          tacitValue: data.tacitValue,
+          tacitValue: tacitValue,
           tacitLevel: tacitLevel,
           eliminatedNouns: data.eliminatedNouns || [],
           calculationDetails: data.calculationDetails || null
@@ -156,22 +100,12 @@ Page({
       // Generate famous pairs comparison
       this.generateFamousPairsComparison();
       
-      // Verify data was set
-      this.addDebugLog('Data after setData', {
-        champion: this.data.champion,
-        hasCalculationDetails: !!this.data.calculationDetails,
-        calculationDetailsType: typeof this.data.calculationDetails
-      });
-      
     } else if (data.action === 'error') {
-      this.addDebugLog('ERROR received', data);
       
       wx.showToast({
         title: data.message || '获取结果失败',
         icon: 'none'
       });
-    } else {
-      this.addDebugLog('Unknown action received', data);
     }
   },
 
@@ -193,19 +127,31 @@ Page({
   playAgain() {
     wx.showModal({
       title: '再来一局',
-      content: '是否与当前对手再玩一局？',
-      confirmText: '继续',
+      content: '将创建新房间，请分享房间号给对手加入',
+      confirmText: '创建新房间',
       cancelText: '返回首页',
       success: (res) => {
         if (res.confirm) {
-          app.sendMessage({
-            action: 'play_again',
-            roomId: app.globalData.roomId,
-            playerId: app.globalData.playerInfo.playerId
-          });
+          // Clear previous game state but keep player info
+          const playerInfo = app.globalData.playerInfo;
+          const themeMode = app.globalData.themeMode;
+          const challengeCategory = app.globalData.challengeCategory;
           
+          // Clear old room data
+          app.globalData.roomId = null;
+          app.globalData.opponentInfo = null;
+          app.globalData.gameResults = null;
+          app.globalData.pendingGameData = null;
+          app.globalData.isHost = true;
+          
+          // Keep player info and theme settings
+          app.globalData.playerInfo = playerInfo;
+          app.globalData.themeMode = themeMode;
+          app.globalData.challengeCategory = challengeCategory;
+          
+          // Navigate to create page to generate new room
           wx.redirectTo({
-            url: '/pages/waiting/waiting'
+            url: '/pages/create/create'
           });
         } else {
           this.backToHome();
@@ -214,11 +160,6 @@ Page({
     });
   },
 
-  toggleDebug() {
-    this.setData({
-      showDebug: !this.data.showDebug
-    });
-  },
   
   processPairwiseScores() {
     // Process pairwise scores into a ranked list for display
@@ -416,58 +357,58 @@ Page({
     // Define famous pairs with preset tacit scores
     const famousPairs = [
       {
-        name1: '刘备',
-        name2: '关羽',
-        description: '桃园三结义',
+        name1: '霉霉',
+        name2: '凯尔斯',
+        description: '美国顶流CP',
         tacitScore: 95,
-        category: '历史兄弟'
+        category: '欧美明星'
       },
       {
-        name1: '诸葛亮',
-        name2: '周瑜',
-        description: '既生瑜何生亮',
-        tacitScore: 35,
-        category: '宿敌'
+        name1: '赞达亚',
+        name2: '荷兰弟',
+        description: '蜘蛛侠情缘',
+        tacitScore: 92,
+        category: '欧美明星'
+      },
+      {
+        name1: '丁禹兮',
+        name2: '虞书欣',
+        description: '永夜星河CP',
+        tacitScore: 88,
+        category: '国剧CP'
+      },
+      {
+        name1: '王鹤棣',
+        name2: '赵露思',
+        description: '珠帘玉幕CP',
+        tacitScore: 85,
+        category: '国剧CP'
+      },
+      {
+        name1: '山田',
+        name2: '市川',
+        description: '动漫年度CP',
+        tacitScore: 93,
+        category: '动漫CP'
+      },
+      {
+        name1: '锦史',
+        name2: '猫猫',
+        description: '药师少女CP',
+        tacitScore: 87,
+        category: '动漫CP'
       },
       {
         name1: '郭德纲',
         name2: '于谦',
         description: '相声黄金搭档',
-        tacitScore: 92,
-        category: '喜剧CP'
-      },
-      {
-        name1: '罗密欧',
-        name2: '朱丽叶',
-        description: '莎士比亚经典',
-        tacitScore: 88,
-        category: '爱情传说'
-      },
-      {
-        name1: '梁山伯',
-        name2: '祝英台',
-        description: '化蝶传说',
         tacitScore: 90,
-        category: '爱情传说'
-      },
-      {
-        name1: '孙悟空',
-        name2: '唐僧',
-        description: '师徒情深',
-        tacitScore: 75,
-        category: '师徒'
-      },
-      {
-        name1: '福尔摩斯',
-        name2: '华生',
-        description: '最佳拍档',
-        tacitScore: 93,
-        category: '侦探搭档'
+        category: '喜剧CP'
       },
       {
         name1: '汤姆',
         name2: '杰瑞',
-        description: '相爱相杀',
+        description: '经典相爱相杀',
         tacitScore: 65,
         category: '卡通CP'
       }

@@ -30,7 +30,7 @@ This is a WeChat Mini Program called "默契小游戏" (Tacit Understanding Game
 ### WeChat Developer Tools
 - **Build**: Use WeChat Developer Tools' built-in compilation (Ctrl/Cmd+B)
 - **Preview**: Generate QR code for mobile testing 
-- **Challenge Mode Testing**: Access "专项挑战" from index page for category-specific games
+- **Theme Mode Testing**: Access "自选主题" from index page for category-specific games
 
 ## Architecture Overview
 
@@ -54,9 +54,9 @@ path: /moqiyouxi_backend/
 
 ### Page Flow & State Transitions
 ```
-Index → Create/Join/Challenge → Waiting → Game → Result
-         ↑                                          ↓
-         └──────────────────────────────────────────┘
+Index → Create/Join/Theme → Waiting → Game → Result
+         ↑                                       ↓
+         └───────────────────────────────────────┘
 ```
 
 Each page manages its lifecycle with WebSocket callbacks:
@@ -91,8 +91,8 @@ The game page (`pages/game/game.js`) implements:
   playerInfo: { nickname, playerId },
   roomId: "123456",  // 6-digit numeric
   isHost: boolean,
-  challengeMode: boolean,
-  challengeCategory: { id, name, icon }
+  themeMode: boolean,
+  themeCategory: { id, name, icon }
 }
 ```
 
@@ -127,7 +127,7 @@ onLoad() {
 }
 ```
 
-## Challenge Mode Categories
+## Theme Categories
 
 19 predefined categories with 40 words each:
 1. 科技公司 (Tech Companies)
@@ -140,7 +140,7 @@ onLoad() {
 8. 游戏 (Games)
 9. 动漫人物 (Anime Characters)
 10. 城市 (Cities)
-11. 历史CP (Historical Pairs)
+11. 现代CP (Modern Couples)
 12. 美食 (Food)
 13. 汽车品牌 (Car Brands)
 14. 电影 (Movies)
@@ -159,7 +159,7 @@ Words are stored in:
 - `app.js`: WebSocket management, global state
 - `pages/game/game.js`: Game logic, battle management
 - `pages/waiting/waiting.js`: Room management, game start logic
-- `pages/challenge/challenge.js`: Category selection, specialized room creation
+- `pages/theme/theme.js`: Category selection for theme-specific games
 - `utils/util.js`: `generateRandomRoomId()`, `getTacitLevel()`
 
 **Backend (Deployed on Server)**:

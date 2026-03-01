@@ -26,6 +26,25 @@ App({
     // Start connection immediately
     this.connectWebSocket();
   },
+  
+  onShow() {
+    // App returns to foreground - reconnect if needed
+    console.log('App onShow - checking connection');
+    if (!this.globalData.wsConnected) {
+      console.log('WebSocket disconnected, reconnecting...');
+      this.connectWebSocket();
+    } else {
+      // Send ping to ensure connection is alive
+      this.sendMessage({ action: 'ping' });
+    }
+  },
+  
+  onHide() {
+    // App goes to background
+    console.log('App onHide - app going to background');
+    // Don't close the connection, let the OS handle it
+    // The server will maintain state for 5 minutes
+  },
 
   connectWebSocket() {
     if (this.globalData.wsConnected) {
@@ -33,7 +52,7 @@ App({
     }
 
     // Use domain (must be whitelisted in WeChat Mini Program console)
-    const wsUrl = 'wss://www.panor.tech:3001/ws';
+    const wsUrl = 'wss://www.panor.tech/moqi/ws';
     
     wx.connectSocket({
       url: wsUrl,
@@ -62,9 +81,15 @@ App({
         this.globalData.reconnectTimer = null;
       }
       
-      // Register player with server
+      // Register player with server (nickname will be set later from index page)
       console.log('准备发送注册请求...');
-      const registerMsg = JSON.stringify({ action: 'register' });
+      // If we already have a player ID, send it for reconnection
+      const registerData = { action: 'register' };
+      if (this.globalData.playerInfo && this.globalData.playerInfo.playerId) {
+        registerData.playerId = this.globalData.playerInfo.playerId;
+        console.log('Reconnecting with existing player ID:', registerData.playerId);
+      }
+      const registerMsg = JSON.stringify(registerData);
       console.log('注册消息:', registerMsg);
       wx.sendSocketMessage({
         data: registerMsg,
@@ -99,9 +124,12 @@ App({
           };
           this.globalData.playerRegistered = true;
           console.log('玩家已注册:', this.globalData.playerInfo);
+          if (this.globalData.messageCallback) {
+            this.globalData.messageCallback(data);
+          }
           return;
         }
-        
+
         if (this.globalData.messageCallback) {
           this.globalData.messageCallback(data);
         }
@@ -205,18 +233,14 @@ App({
 
   resetGameState() {
     this.globalData.roomId = null;
-    // Keep player registration but clear room-specific info
-    if (this.globalData.playerInfo) {
-      // Preserve playerId but clear room-specific nickname if needed
-      this.globalData.playerInfo.nickname = null;
-    }
+    // Keep player registration including nickname
+    // Nickname is maintained from index page input
     this.globalData.opponentInfo = null;
     this.globalData.isHost = false;
     this.globalData.challengeMode = false;
     this.globalData.challengeCategory = null;
-    this.globalData.testMode = false;
-    this.globalData.aiPlayer = null;
     this.globalData.groupMode = false;
     this.globalData.maxPlayers = 2;
+    this.globalData.pendingGameData = null;
   }
 });

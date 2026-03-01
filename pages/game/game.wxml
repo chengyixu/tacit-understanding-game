@@ -14,60 +14,23 @@
   <view class="battle-number">第 {{currentBattle.round}}/{{totalRounds}} 轮</view>
 
   <view wx:if="{{currentBattle}}" class="battle-container">
-    <!-- Swipe Instructions -->
-    <view class="swipe-instructions">
-      <text class="instruction-text">← 左滑选择A | 右滑选择B →</text>
-    </view>
-    
-    <!-- Tinder-style card stack -->
-    <view class="tinder-container">
-      <!-- Swipe area with both cards -->
-      <view class="swipe-area" 
-            bindtouchstart="onTouchStart"
-            bindtouchmove="onTouchMove" 
-            bindtouchend="onTouchEnd"
-            bindtouchcancel="onTouchEnd">
-        
-        <!-- Central card stack that shows both options -->
-        <view class="card-display" 
-              style="transform: translateX({{swipeX}}px) rotate({{swipeRotation}}deg)">
-          
-          <!-- Option A (Left) -->
-          <view class="option-card option-a {{swipeDirection === 'left' ? 'highlighting' : ''}}">
-            <view class="option-indicator">A</view>
-            <view class="option-name">{{currentBattle.noun1.name}}</view>
-            <view class="option-category">{{currentBattle.noun1.category}}</view>
-          </view>
-          
-          <!-- VS Divider -->
-          <view class="vs-divider">
-            <text>VS</text>
-          </view>
-          
-          <!-- Option B (Right) -->
-          <view class="option-card option-b {{swipeDirection === 'right' ? 'highlighting' : ''}}">
-            <view class="option-indicator">B</view>
-            <view class="option-name">{{currentBattle.noun2.name}}</view>
-            <view class="option-category">{{currentBattle.noun2.category}}</view>
-          </view>
-        </view>
-        
-        <!-- Selection overlay -->
-        <view class="selection-overlay {{swipeDirection}}" 
-              style="opacity: {{overlayOpacity}}">
-          <text wx:if="{{swipeDirection === 'left'}}">← 选择 A</text>
-          <text wx:elif="{{swipeDirection === 'right'}}">选择 B →</text>
-        </view>
+    <view class="battle-options">
+      <view class="option-card option-a {{selectedNounId == currentBattle.noun1.id ? 'selected' : ''}}"
+            bindtap="selectOption"
+            data-id="{{currentBattle.noun1.id}}">
+        <view class="option-name">{{currentBattle.noun1.name}}</view>
+        <view class="option-category">{{currentBattle.noun1.category}}</view>
       </view>
-      
-      <!-- Quick tap buttons -->
-      <view class="tap-buttons">
-        <view class="tap-btn" bindtap="quickSelectA">
-          <text>A</text>
-        </view>
-        <view class="tap-btn" bindtap="quickSelectB">
-          <text>B</text>
-        </view>
+
+      <view class="vs-divider">
+        <text>VS</text>
+      </view>
+
+      <view class="option-card option-b {{selectedNounId == currentBattle.noun2.id ? 'selected' : ''}}"
+            bindtap="selectOption"
+            data-id="{{currentBattle.noun2.id}}">
+        <view class="option-name">{{currentBattle.noun2.name}}</view>
+        <view class="option-category">{{currentBattle.noun2.category}}</view>
       </view>
     </view>
 
@@ -90,5 +53,5 @@
       </view>
     </view>
   </view>
-  <view class="ai-caption">AI生成、人工智能生成</view>
+  <view class="ai-caption" wx:if="{{opponentInfo.nickname === 'AI测试员'}}">对手为AI，选择结果由人工智能生成</view>
 </view>

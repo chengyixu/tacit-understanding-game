@@ -11,18 +11,7 @@ Page({
     battleHistory: [],
     roundProgress: 0,
     totalRounds: 9,
-    waitingForOpponent: false,
-    
-    // Swipe animation states
-    swipeX: 0,
-    swipeRotation: 0,
-    swipeDirection: '',
-    overlayOpacity: 0,
-    startX: 0,
-    startY: 0,
-    
-    // AI test mode
-    testMode: false
+    waitingForOpponent: false
   },
 
   onLoad() {
@@ -31,30 +20,62 @@ Page({
       return;
     }
 
-    // Set up virtual AI player if in test mode
-    if (app.globalData.testMode && !app.globalData.aiPlayer) {
-      app.globalData.aiPlayer = {
-        playerId: 'ai-' + Date.now(),
-        nickname: 'AI对手',
-        isAI: true
-      };
-      app.globalData.opponentInfo = app.globalData.aiPlayer;
-    }
-
     this.setData({
       roomId: app.globalData.roomId,
       playerInfo: app.globalData.playerInfo,
-      opponentInfo: app.globalData.opponentInfo,
-      testMode: app.globalData.testMode || false
+      opponentInfo: app.globalData.opponentInfo
     });
 
     app.setMessageCallback(this.handleMessage.bind(this));
     
-    // Server handles AI behavior in test mode
+    // If waiting room already received the game payload, hydrate immediately
+    if (app.globalData.pendingGameData) {
+      this.handleGameStarted(app.globalData.pendingGameData);
+      app.globalData.pendingGameData = null;
+    }
   },
 
   onShow() {
     app.setMessageCallback(this.handleMessage.bind(this));
+    
+    // Reconnect and request current game state when returning from background
+    if (app.globalData.roomId && app.globalData.playerInfo && this.data.currentBattle) {
+      console.log('Game page onShow - checking connection');
+      
+      // Check WebSocket connection
+      if (!app.globalData.wsConnected) {
+        wx.showToast({
+          title: '重新连接中...',
+          icon: 'loading'
+        });
+        
+        // Wait for connection then request game state
+        setTimeout(() => {
+          this.requestGameState();
+        }, 1000);
+      } else {
+        // Connection is alive, request current state if we're in a game
+        if (this.data.currentRound > 0) {
+          this.requestGameState();
+        }
+      }
+    }
+  },
+  
+  onHide() {
+    // Page goes to background
+    console.log('Game page onHide');
+  },
+  
+  requestGameState() {
+    // Request current game state from server
+    console.log('Requesting current game state');
+    app.sendMessage({
+      action: 'requestGameState',
+      roomId: app.globalData.roomId,
+      playerId: app.globalData.playerInfo.playerId,
+      currentRound: this.data.currentRound
+    });
   },
 
   onUnload() {
@@ -63,11 +84,6 @@ Page({
 
   handleMessage(data) {
     console.log('Game page received:', data);
-
-    if (this.data.isProcessing) {
-      console.log('Already processing, ignoring message');
-      return;
-    }
 
     switch(data.action) {
       case 'gameStarted':
@@ -87,6 +103,51 @@ Page({
         break;
       case 'gameComplete':
         this.handleGameComplete(data);
+        break;
+      case 'gameStateUpdate':
+        // Restore game state after reconnection
+        console.log('Restored game state:', data);
+        if (data.currentBattle) {
+          this.setData({
+            currentBattle: data.currentBattle,
+            currentRound: data.currentRound,
+            totalRounds: data.totalRounds || 9
+          });
+          wx.showToast({
+            title: '已恢复游戏',
+            icon: 'success'
+          });
+        }
+        break;
+      case 'gameAlreadyComplete':
+        // Game finished while disconnected
+        wx.redirectTo({
+          url: '/pages/result/result'
+        });
+        break;
+      case 'waitingForOpponent':
+        wx.showToast({
+          title: '等待对手完成',
+          icon: 'loading',
+          duration: 2000
+        });
+        break;
+      case 'gameNotStarted':
+        wx.redirectTo({
+          url: '/pages/waiting/waiting'
+        });
+        break;
+      case 'choiceSubmitted':
+        // Confirmation that choice was received by server
+        console.log('Choice confirmed by server for round', data.round);
+        // Immediately hide loading toast when choice is confirmed
+        wx.hideToast();
+        // Show a shorter waiting message
+        wx.showToast({
+          title: '等待对手...',
+          icon: 'loading',
+          duration: 2000
+        });
         break;
       case 'error':
         this.handleError(data);
@@ -131,6 +192,11 @@ Page({
   },
   
   handleNextBattle(data) {
+    console.log('Received nextBattle, hiding loading toast');
+    
+    // Immediately hide any loading toast
+    wx.hideToast();
+    
     const progress = ((data.currentRound - 1) / this.data.totalRounds) * 100;
     
     this.setData({
@@ -155,6 +221,14 @@ Page({
 
   handleTournamentComplete(data) {
     console.log('Tournament complete:', data);
+    
+    // Hide any existing loading toast
+    wx.hideToast();
+    
+    this.setData({
+      isProcessing: false,
+      waitingForOpponent: true
+    });
     // Player's tournament is complete, waiting for others
     if (data.waitingForOthers) {
       wx.showToast({
@@ -167,6 +241,14 @@ Page({
 
   handleGameComplete(data) {
     console.log('Game complete:', data);
+    
+    // Immediately hide any loading toast
+    wx.hideToast();
+    
+    this.setData({
+      isProcessing: false,
+      waitingForOpponent: false
+    });
     // Store results in app global data for result page
     app.globalData.gameResults = data;
     wx.redirectTo({
@@ -186,109 +268,23 @@ Page({
     });
   },
 
-  // Touch event handlers for swipe gestures
-  onTouchStart(e) {
-    if (this.data.isProcessing || this.data.selectedNounId) {
+  selectOption(event) {
+    if (this.data.isProcessing || !this.data.currentBattle) {
       return;
     }
-    
-    this.setData({
-      startX: e.touches[0].clientX,
-      startY: e.touches[0].clientY
-    });
-  },
-  
-  onTouchMove(e) {
-    if (this.data.isProcessing || this.data.selectedNounId) {
+
+    const nounId = event && event.currentTarget ? event.currentTarget.dataset.id : null;
+    if (!nounId) {
       return;
     }
-    
-    const deltaX = e.touches[0].clientX - this.data.startX;
-    const rotation = deltaX * 0.1; // Slight rotation based on swipe
-    
-    // Determine swipe direction
-    let direction = '';
-    let opacity = 0;
-    
-    if (Math.abs(deltaX) > 30) {
-      direction = deltaX > 0 ? 'right' : 'left';
-      opacity = Math.min(Math.abs(deltaX) / 150, 1);
-    }
-    
-    this.setData({
-      swipeX: deltaX,
-      swipeRotation: rotation,
-      swipeDirection: direction,
-      overlayOpacity: opacity
-    });
-  },
-  
-  onTouchEnd(e) {
-    if (this.data.isProcessing || this.data.selectedNounId) {
-      return;
-    }
-    
-    const threshold = 100;
-    
-    if (Math.abs(this.data.swipeX) > threshold) {
-      // Swipe is significant enough to select
-      if (this.data.swipeX < 0) {
-        this.selectOption('A');
-      } else {
-        this.selectOption('B');
-      }
-    } else {
-      // Reset position
-      this.setData({
-        swipeX: 0,
-        swipeRotation: 0,
-        swipeDirection: '',
-        overlayOpacity: 0
-      });
-    }
-  },
-  
-  // Quick select buttons
-  quickSelectA() {
-    if (!this.data.isProcessing && !this.data.selectedNounId) {
-      this.animateSelection('left', () => this.selectOption('A'));
-    }
-  },
-  
-  quickSelectB() {
-    if (!this.data.isProcessing && !this.data.selectedNounId) {
-      this.animateSelection('right', () => this.selectOption('B'));
-    }
-  },
-  
-  animateSelection(direction, callback) {
-    const targetX = direction === 'left' ? -300 : 300;
-    const rotation = direction === 'left' ? -20 : 20;
-    
-    this.setData({
-      swipeX: targetX,
-      swipeRotation: rotation,
-      swipeDirection: direction,
-      overlayOpacity: 1
-    });
-    
-    setTimeout(callback, 300);
-  },
-  
-  selectOption(option) {
-    if (this.data.isProcessing || this.data.selectedNounId) {
-      return;
-    }
-    
-    const nounId = option === 'A' ? 
-      this.data.currentBattle.noun1.id : 
-      this.data.currentBattle.noun2.id;
-    
+
     this.setData({
       selectedNounId: nounId,
       waitingForOpponent: !this.data.testMode,
       isProcessing: true
     });
+    
+    console.log(`Submitting choice for round ${this.data.currentBattle.round}: ${nounId}`);
     
     app.sendMessage({
       action: 'submitChoice',
@@ -297,55 +293,14 @@ Page({
       round: this.data.currentBattle.round,
       nounId: nounId
     });
-    
+
     if (!this.data.testMode) {
       wx.showToast({
-        title: '等待对手选择...',
+        title: '提交中...',
         icon: 'loading',
-        duration: 10000
+        duration: 50  // Short duration since server responds immediately
       });
-    } else {
-      // In test mode, simulate AI choice after a short delay
-      this.simulateAIChoice();
     }
-    
-    // Reset swipe position after selection
-    setTimeout(() => {
-      this.setData({
-        swipeX: 0,
-        swipeRotation: 0,
-        swipeDirection: '',
-        overlayOpacity: 0
-      });
-    }, 400);
-  },
-  
-  // AI test mode functions
-  initAIMode() {
-    console.log('Initializing AI test mode with virtual player:', app.globalData.aiPlayer);
-    // Virtual AI player is created and ready
-    // Server handles word selection from production word bank
-    // AI will make choices like a real human player
-    this.aiReactionTime = {
-      min: 800,   // Minimum thinking time (ms)
-      max: 3000   // Maximum thinking time (ms)
-    };
-  },
-  
-  simulateAIChoice() {
-    // In test mode, we don't actually control the AI - the server does
-    // The server will automatically make choices for the AI player
-    console.log('Server is handling AI player choices');
-    
-    // Just wait for server to send next battle after AI makes its choice
-    // The server has built-in AI logic for test mode
-  },
-
-  selectNoun(e) {
-    // Legacy function for compatibility
-    const nounId = e.currentTarget.dataset.id;
-    const option = nounId === this.data.currentBattle.noun1.id ? 'A' : 'B';
-    this.selectOption(option);
   },
 
   // Next battle is automatically sent by server after submitChoice

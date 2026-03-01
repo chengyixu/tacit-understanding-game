@@ -7,7 +7,7 @@
     "pages/waiting/waiting",
     "pages/game/game",
     "pages/result/result",
-    "pages/challenge/challenge"
+    "pages/theme/theme"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -11,7 +11,8 @@ Page({
     groupMode: false,
     maxPlayers: 2,
     allPlayers: [],
-    currentPlayerCount: 1
+    currentPlayerCount: 1,
+    themeCategory: null
   },
 
   onLoad() {
@@ -29,15 +30,15 @@ Page({
       isHost: app.globalData.isHost,
       groupMode: groupMode,
       maxPlayers: maxPlayers,
-      allPlayers: [app.globalData.playerInfo]
+      allPlayers: [app.globalData.playerInfo],
+      themeCategory: app.globalData.challengeCategory || app.globalData.selectedThemeCategory
     });
 
     app.setMessageCallback(this.handleMessage.bind(this));
     
-    // Reconnect to room when page loads
+    // ALWAYS reconnect to get the current room state
     this.reconnectToRoom();
-    
-    // Server will send AI opponent info if test mode is enabled
+    app.globalData.fromCreatePage = false;  // Reset flag
   },
   
 
@@ -55,17 +56,18 @@ Page({
     
     // If host, try to create/reconnect to room
     if (this.data.isHost) {
-      app.sendMessage({
+      const message = {
         action: 'createRoom',
         roomId: app.globalData.roomId,
         playerInfo: app.globalData.playerInfo,
-        challengeMode: app.globalData.challengeMode || false,
+        challengeMode: app.globalData.themeMode || false,  // Use themeMode to indicate category-specific mode
         challengeCategory: app.globalData.challengeCategory || null,
-        testMode: app.globalData.testMode || false,  // Server handles AI creation
         groupMode: this.data.groupMode,
         maxPlayers: this.data.maxPlayers
-      });
-      // Server will automatically add AI player if testMode is true
+      };
+      
+      console.log('[WAITING] Sending reconnect message:', message);
+      app.sendMessage(message);
     } else {
       // If guest, rejoin the room
       app.sendMessage({
@@ -85,24 +87,22 @@ Page({
     console.log('Current state - isHost:', this.data.isHost, 'opponentInfo:', this.data.opponentInfo);
     
     // Handle reconnection responses
-    if (data.action === 'roomCreated' || data.action === 'joinedRoom') {
+    if (data.action === 'roomCreated') {
       console.log('Successfully reconnected to room');
-      // Server handles AI player creation in test mode
-      return;
+      // Don't return - still need to process roomUpdate that follows
+      // return;
+    }
+    
+    if (data.action === 'joinedRoom') {
+      console.log('Successfully joined room');
+      // Don't return - still need to process roomUpdate that follows
+      // return;
     }
 
     if (data.action === 'roomUpdate') {
       console.log('Room update:', data);
-      
-      // In test mode, don't wait for players
-      if (app.globalData.testMode && this.data.isHost) {
-        this.setData({
-          opponentInfo: { nickname: 'AI', playerId: 'ai' }
-        });
-        app.globalData.opponentInfo = { nickname: 'AI', playerId: 'ai' };
-        setTimeout(() => this.startGame(), 1000);
-        return;
-      }
+      console.log('Players in update:', data.players);
+      console.log('My playerInfo:', this.data.playerInfo);
       
       // Update room status with players list
       if (data.players) {
@@ -113,10 +113,30 @@ Page({
         
         // In 2-player mode, find the opponent
         if (!this.data.groupMode && data.players.length === 2) {
-          const opponent = data.players.find(p => p.playerId !== this.data.playerInfo.playerId);
-          if (opponent && !this.data.opponentInfo) {
+          const myPlayerId = (this.data.playerInfo && this.data.playerInfo.playerId)
+            || (app.globalData.playerInfo && app.globalData.playerInfo.playerId);
+          let opponent = null;
+
+          if (myPlayerId) {
+            opponent = data.players.find(p => p.playerId === myPlayerId ? false : true);
+          }
+
+
+          if (!opponent && data.players.length > 1) {
+            opponent = data.players.find(p => p.playerId);
+          }
+
+          if (!myPlayerId && opponent) {
+            console.warn('Player ID missing when processing room update, using opponent id only', opponent);
+          }
+          console.log('Found opponent:', opponent);
+          console.log('Current opponentInfo:', this.data.opponentInfo);
+          
+          if (opponent) {
+            // Always update opponent info when we find one
             this.setData({ opponentInfo: opponent });
             app.globalData.opponentInfo = opponent;
+            console.log('Set opponent info to:', opponent);
             
             wx.showToast({
               title: `${opponent.nickname} 加入了房间`,
@@ -140,11 +160,6 @@ Page({
       const newPlayer = data.playerInfo;
       
       if (newPlayer && newPlayer.playerId !== this.data.playerInfo.playerId) {
-        // Store AI player info if it's an AI
-        if (newPlayer.playerId && newPlayer.playerId.startsWith('AI_')) {
-          app.globalData.aiPlayer = newPlayer;
-        }
-        
         this.setData({
           opponentInfo: newPlayer,
           allPlayers: [this.data.playerInfo, newPlayer],
@@ -184,6 +199,8 @@ Page({
     } else if (data.action === 'gameStarting') {
       this.handleGameStarting();
     } else if (data.action === 'gameStarted') {
+      // Preserve initial game payload so game page can render instantly
+      app.globalData.pendingGameData = data;
       wx.redirectTo({
         url: '/pages/game/game'
       });
@@ -197,6 +214,22 @@ Page({
         title: '对手离开了房间',
         icon: 'none'
       });
+    } else if (data.action === 'newRoomCreated') {
+      // Handle play_again response - new room created
+      console.log('New room created for play_again:', data.roomId);
+      app.globalData.roomId = data.roomId;
+      app.globalData.isHost = data.isHost;
+      this.setData({
+        roomId: data.roomId,
+        isHost: data.isHost,
+        opponentInfo: null,
+        allPlayers: [app.globalData.playerInfo],
+        currentPlayerCount: 1
+      });
+      wx.showToast({
+        title: '新房间已创建',
+        icon: 'success'
+      });
     } else if (data.action === 'error') {
       wx.showToast({
         title: data.message || '操作失败',
@@ -206,28 +239,8 @@ Page({
   },
 
   startGame() {
-    // In test mode, wait for server to add AI player
-    if (app.globalData.testMode) {
-      if (!this.data.opponentInfo) {
-        wx.showToast({
-          title: '等待AI加入...',
-          icon: 'loading',
-          duration: 2000
-        });
-        // Server adds AI after 1 second, wait a bit more then retry
-        setTimeout(() => {
-          if (this.data.opponentInfo) {
-            this.startGame();
-          } else {
-            wx.showToast({
-              title: 'AI未就绪，请重试',
-              icon: 'none'
-            });
-          }
-        }, 1500);
-        return;
-      }
-    } else if (this.data.groupMode) {
+    // Check if we have enough players
+    if (this.data.groupMode) {
       // Group mode: check if we have enough players
       if (this.data.currentPlayerCount < this.data.maxPlayers) {
         wx.showToast({
@@ -248,7 +261,7 @@ Page({
     }
 
     app.sendMessage({
-      action: 'start_game',
+      action: 'startGame',
       roomId: this.data.roomId
     });
   },
