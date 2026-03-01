@@ -1,7 +1,12 @@
 {
   "description": "默契小游戏项目配置文件",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "__pycache__"
+      }
+    ],
     "include": []
   },
   "compileType": "miniprogram",

@@ -1,6 +1,7 @@
 App({
   globalData: {
     wsConnected: false,
+    wsConnecting: false,
     playerRegistered: false,
     reconnectTimer: null,
     heartbeatTimer: null,
@@ -16,74 +17,44 @@ App({
   },
 
   onLaunch() {
-    // Immediate visual feedback
-    wx.showToast({
-      title: 'App启动中...',
-      icon: 'loading',
-      duration: 3000
-    });
-    
+    // Register global WebSocket event handlers once
+    this._setupSocketHandlers();
+
     // Start connection immediately
     this.connectWebSocket();
   },
-  
+
   onShow() {
     // App returns to foreground - reconnect if needed
     console.log('App onShow - checking connection');
-    if (!this.globalData.wsConnected) {
+    if (!this.globalData.wsConnected && !this.globalData.wsConnecting) {
       console.log('WebSocket disconnected, reconnecting...');
       this.connectWebSocket();
-    } else {
+    } else if (this.globalData.wsConnected) {
       // Send ping to ensure connection is alive
       this.sendMessage({ action: 'ping' });
     }
   },
-  
+
   onHide() {
     // App goes to background
     console.log('App onHide - app going to background');
-    // Don't close the connection, let the OS handle it
-    // The server will maintain state for 5 minutes
   },
 
-  connectWebSocket() {
-    if (this.globalData.wsConnected) {
-      return;
-    }
-
-    // Use domain (must be whitelisted in WeChat Mini Program console)
-    const wsUrl = 'wss://www.panor.tech/moqi/ws';
-    
-    wx.connectSocket({
-      url: wsUrl,
-      success: () => {
-        wx.showToast({
-          title: '连接中...',
-          icon: 'loading'
-        });
-      },
-      fail: (err) => {
-        wx.showToast({
-          title: '连接失败',
-          icon: 'none'
-        });
-        this.scheduleReconnect();
-      }
-    });
-
+  _setupSocketHandlers() {
     wx.onSocketOpen(() => {
       console.log('WebSocket连接已打开');
       this.globalData.wsConnected = true;
+      this.globalData.wsConnecting = false;
       this.globalData.reconnectAttempts = 0;
-      
+
       if (this.globalData.reconnectTimer) {
         clearTimeout(this.globalData.reconnectTimer);
         this.globalData.reconnectTimer = null;
       }
-      
-      // Register player with server (nickname will be set later from index page)
+
+      // Register player with server
       console.log('准备发送注册请求...');
-      // If we already have a player ID, send it for reconnection
       const registerData = { action: 'register' };
       if (this.globalData.playerInfo && this.globalData.playerInfo.playerId) {
         registerData.playerId = this.globalData.playerInfo.playerId;
@@ -98,11 +69,9 @@ App({
         },
         fail: (err) => {
           console.error('注册请求发送失败:', err);
-          console.error('失败详情:', JSON.stringify(err));
         }
       });
-      
-      // Send ping to keep connection alive
+
       this.startHeartbeat();
     });
 
@@ -110,13 +79,11 @@ App({
       try {
         const data = JSON.parse(res.data);
         console.log('收到消息:', data);
-        
+
         if (data.action === 'pong') {
-          // Heartbeat response
           return;
         }
-        
-        // Handle player registration
+
         if (data.action === 'registered') {
           this.globalData.playerInfo = {
             playerId: data.playerId,
@@ -141,6 +108,7 @@ App({
     wx.onSocketError((err) => {
       console.error('WebSocket错误:', err);
       this.globalData.wsConnected = false;
+      this.globalData.wsConnecting = false;
       this.globalData.playerRegistered = false;
       this.stopHeartbeat();
       this.scheduleReconnect();
@@ -149,9 +117,31 @@ App({
     wx.onSocketClose(() => {
       console.log('WebSocket连接关闭');
       this.globalData.wsConnected = false;
+      this.globalData.wsConnecting = false;
       this.globalData.playerRegistered = false;
       this.stopHeartbeat();
       this.scheduleReconnect();
+    });
+  },
+
+  connectWebSocket() {
+    if (this.globalData.wsConnected || this.globalData.wsConnecting) {
+      return;
+    }
+
+    this.globalData.wsConnecting = true;
+    const wsUrl = 'wss://www.panor.tech/moqi/ws';
+
+    wx.connectSocket({
+      url: wsUrl,
+      success: () => {
+        console.log('WebSocket连接请求已发送');
+      },
+      fail: (err) => {
+        console.error('WebSocket连接请求失败:', err);
+        this.globalData.wsConnecting = false;
+        this.scheduleReconnect();
+      }
     });
   },
   
