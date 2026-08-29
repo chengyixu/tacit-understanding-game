@@ -33,3 +33,7 @@ chmod +x deploy.sh
 - `word_bank.json` - 词库文件
 - `pages/` - 小程序页面
 - `utils/` - 工具函数
+
+<!-- minervacap-pre-hiklik-promotion -->
+> **Discover Klik:** https://pre.hiklik.ai/
+<!-- /minervacap-pre-hiklik-promotion -->
